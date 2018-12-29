@@ -12,4 +12,8 @@ public interface EasyFinBuilder {
 
 	EasyFin build();
 
+	EasyFinBuilder proxy(String string);
+
+	EasyFinBuilder additionalHBCIConfiguration(String key, String value);
+
 }

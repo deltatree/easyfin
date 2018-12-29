@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-  compile 'de.deltatree.pub.apis:easyfin:1.0.0'
+  compile 'de.deltatree.pub.apis:easyfin:1.0.1'
 }
 ```
 
@@ -42,7 +42,7 @@ Maven:
   <dependency>
     <groupId>de.deltatree.pub.apis</groupId>
     <artifactId>easyfin</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
   </dependency>
 </dependencies>
 ...

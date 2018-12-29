@@ -2,6 +2,7 @@ package de.deltatree.pub.apis.easyfin;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -42,8 +43,9 @@ public class DefaultEasyFin implements EasyFin {
 
 	private final HBCICallback callback;
 
-	public DefaultEasyFin(String loginName, String password, BankData bankData) {
-		this.props = initProperties(bankData);
+	public DefaultEasyFin(String loginName, String password, BankData bankData,
+			Map<String, String> additionalHBCIConfiguration) {
+		this.props = initProperties(bankData, additionalHBCIConfiguration);
 
 		this.callback = new MyHBCICallback(new MyHBCICallbackAnswers() {
 
@@ -147,7 +149,7 @@ public class DefaultEasyFin implements EasyFin {
 		HBCIUtils.done();
 	}
 
-	private static Properties initProperties(BankData bankData) {
+	private static Properties initProperties(BankData bankData, Map<String, String> additionalHBCIConfiguration) {
 		Properties p = new Properties();
 
 		// Set basic parameters
@@ -163,6 +165,10 @@ public class DefaultEasyFin implements EasyFin {
 		File passportFile = new File("hbci---" + UUID.randomUUID().toString() + ".passport");
 		passportFile.deleteOnExit();
 		p.setProperty("client.passport.PinTan.filename", passportFile.getName());
+
+		for (String key : additionalHBCIConfiguration.keySet()) {
+			p.setProperty(key, additionalHBCIConfiguration.get(key));
+		}
 
 		return p;
 	}

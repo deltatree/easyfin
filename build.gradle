@@ -1,8 +1,6 @@
-//https://github.com/thombergs/diffparser/blob/master/build.gradle
-
 plugins {
     id "java"
-    id "com.jfrog.bintray" version "1.7.3"
+    id "com.jfrog.bintray" version "1.8.4"
     id "maven-publish"
 }
 
@@ -12,7 +10,7 @@ repositories {
     jcenter()
 }
 
-version = '1.0.0' + (Boolean.valueOf(System.getProperty("snapshot")) ? "-SNAPSHOT" : "")
+version = '1.0.1' + (Boolean.valueOf(System.getProperty("snapshot")) ? "-SNAPSHOT" : "")
 sourceCompatibility = 1.8
 
 ext{
