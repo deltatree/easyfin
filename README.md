@@ -19,10 +19,6 @@ try {
 
 Gradle:
 ```gradle
-repositories {
-  jcenter()
-}
-
 dependencies {
   compile 'de.deltatree.pub.apis:easyfin:1.0.1'
 }
@@ -31,13 +27,6 @@ dependencies {
 Maven:
 ```maven
 ...
-<repositories>
-  <repository>
-    <id>jcenter</id>
-    <url>https://jcenter.bintray.com/</url>
-  </repository>
-</repositories>
-
 <dependencies>
   <dependency>
     <groupId>de.deltatree.pub.apis</groupId>
