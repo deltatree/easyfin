@@ -1,5 +1,5 @@
 # easyfin
-Threadsafe HBCI4JAVA Wrapper for easily accessing your financial accounts so you need no cloud services to do that
+Threadsafe HBCI4JAVA Wrapper for easily accessing your financial accounts
 
 Usage:
 ```java
