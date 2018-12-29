@@ -1,0 +1,15 @@
+apply plugin: 'java-library'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+	implementation 'com.github.hbci4j:hbci4j-core:3.0.21'
+    implementation 'com.google.guava:guava:27.0.1-jre'
+	
+	compileOnly 'org.projectlombok:lombok:1.18.4'
+	
+    testImplementation 'junit:junit:4.12'
+}
+
