@@ -1,6 +1,7 @@
 package de.deltatree.pub.apis.easyfin;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -26,8 +27,6 @@ import org.kapott.hbci.manager.HBCIUtils;
 import org.kapott.hbci.passport.HBCIPassport;
 import org.kapott.hbci.status.HBCIExecStatus;
 import org.kapott.hbci.structures.Konto;
-
-import com.google.common.collect.Lists;
 
 public class DefaultEasyFin implements EasyFin {
 
@@ -121,7 +120,7 @@ public class DefaultEasyFin implements EasyFin {
 			@Override
 			protected AccountsResult execute(HBCIPassport passport, HBCIHandler handler) throws Exception {
 				Konto[] accounts = passport.getAccounts();
-				List<Konto> result = Lists.newArrayList();
+				List<Konto> result = new ArrayList<Konto>();
 				for (Konto account : accounts) {
 					result.add(account);
 				}
@@ -154,7 +153,7 @@ public class DefaultEasyFin implements EasyFin {
 
 		// Set basic parameters
 		p.setProperty("default.hbciversion", bankData.getPinTanVersion());
-		p.setProperty("log.loglevel.default", "3");
+		p.setProperty("log.loglevel.default", "1");
 
 		p.setProperty("client.passport.default", "PinTan");
 

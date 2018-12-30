@@ -1,18 +1,17 @@
 package de.deltatree.pub.apis.easyfin;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import com.google.common.collect.Maps;
 
 public class DefaultEasyFinBuilder implements EasyFinBuilder {
 
 	private String loginName;
 	private String password;
 	private BankData bankData;
-	private Map<String, String> additionalHBCIConfiguration = Maps.newHashMap();
+	private Map<String, String> additionalHBCIConfiguration = new HashMap<String, String>();
 
 	@Override
 	public EasyFinBuilder loginName(String loginName) {

@@ -106,7 +106,6 @@ bintray {
 
 dependencies {
 	implementation 'com.github.hbci4j:hbci4j-core:3.0.21'
-    implementation 'com.google.guava:guava:27.0.1-jre'
 	
 	compileOnly 'org.projectlombok:lombok:1.18.4'
 	
