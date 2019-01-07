@@ -34,7 +34,7 @@ public class DefaultEasyFin implements EasyFin {
 		HBCIUtils.init(new Properties(), new HBCICallbackUnsupported());
 	}
 
-	private final static ExecutorService EXECUTOR = Executors.newCachedThreadPool(new HBCIThreadFactory());
+	private final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(new HBCIThreadFactory());
 
 	private final static HBCIPassportFactory PASSPORT_FACTORY = new DefaultHBCIPassportFactory((Object) "Passports");
 
@@ -136,7 +136,7 @@ public class DefaultEasyFin implements EasyFin {
 		}
 	}
 
-	public static void cleanShutdown() {
+	public void clean() {
 		EXECUTOR.shutdown();
 		while (!EXECUTOR.isTerminated()) {
 			try {
@@ -145,7 +145,6 @@ public class DefaultEasyFin implements EasyFin {
 				throw new IllegalStateException(e);
 			}
 		}
-		HBCIUtils.done();
 	}
 
 	private static Properties initProperties(BankData bankData, Map<String, String> additionalHBCIConfiguration) {

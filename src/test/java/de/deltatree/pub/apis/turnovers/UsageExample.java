@@ -10,7 +10,26 @@ import de.deltatree.pub.apis.easyfin.EasyFinFactory;
 public class UsageExample {
 
 	public static void main(String[] args) {
-		EasyFin to = EasyFinFactory.builder() //
+		final AtomicInteger a = new AtomicInteger(0);
+		try {
+			for (int i = 1; i <= 10; i++) {
+				EasyFin ef = initEasyfin();
+				try {
+					for (Konto k : ef.getAccounts()) {
+						ef.getTurnoversAsStream(k)
+								.forEach(t -> System.out.println(a.incrementAndGet() + " " + t.value));
+					}
+				} finally {
+					ef.clean();
+				}
+			}
+		} finally {
+			EasyFinFactory.clean();
+		}
+	}
+
+	private static EasyFin initEasyfin() {
+		return EasyFinFactory.builder() //
 				.loginName("VRNetKey Alias/ID") //
 				.loginPassword("VRNetKey Password") //
 				.bankData("Name / BIC / BLZ der Zielbank") //
@@ -18,16 +37,6 @@ public class UsageExample {
 				.additionalHBCIConfiguration("key1", "value1") // optional
 				.additionalHBCIConfiguration("keyN", "valueN") // optional
 				.build();
-
-		try {
-			final AtomicInteger i = new AtomicInteger(0);
-
-			for (Konto k : to.getAccounts()) {
-				to.getTurnoversAsStream(k).forEach(t -> System.out.println(i.incrementAndGet() + " " + t.bdate));
-			}
-		} finally {
-			EasyFinFactory.destroyAll();
-		}
 	}
 
 }

@@ -11,4 +11,6 @@ public interface EasyFin {
 	Stream<UmsLine> getTurnoversAsStream(Konto account);
 
 	List<Konto> getAccounts();
+
+	void clean();
 }
