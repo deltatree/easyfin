@@ -26,7 +26,7 @@ try {
 Gradle:
 ```gradle
 dependencies {
-  compile 'de.deltatree.pub.apis:easyfin:1.0.2'
+  compile 'de.deltatree.pub.apis:easyfin:1.0.3'
 }
 ```
 
@@ -37,7 +37,7 @@ Maven:
   <dependency>
     <groupId>de.deltatree.pub.apis</groupId>
     <artifactId>easyfin</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
   </dependency>
 </dependencies>
 ...
