@@ -31,8 +31,8 @@ public class UsageExample {
 	private static EasyFin initEasyfin() {
 		return EasyFinFactory.builder() //
 				.customerId("VRNetKey Alias/ID") // Bei Volksbanken (agree21) und Sparkassen
-				.userId("VRNetKey Alias/ID") // haben CustomerId und UserId gleicher Wert
-				.pin("VRNetKey Pin") //
+				.userId("VRNetKey Alias/ID") // haben CustomerId und UserId den gleichen Wert
+				.pin("Pin") //
 				.bankData("Name / BIC / BLZ der Zielbank") //
 				.proxy("proxy.intern.domain.com:3128") // optional
 				.additionalHBCIConfiguration("key1", "value1") // optional
