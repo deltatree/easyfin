@@ -28,6 +28,11 @@ import org.kapott.hbci.passport.HBCIPassport;
 import org.kapott.hbci.status.HBCIExecStatus;
 import org.kapott.hbci.structures.Konto;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+@Data
 public class DefaultEasyFin implements EasyFin {
 
 	static {
@@ -38,29 +43,39 @@ public class DefaultEasyFin implements EasyFin {
 
 	private final static HBCIPassportFactory PASSPORT_FACTORY = new DefaultHBCIPassportFactory((Object) "Passports");
 
-	private final Properties props;
+	private Properties props;
 
-	private final HBCICallback callback;
+	private HBCICallback callback;
 
-	public DefaultEasyFin(String loginName, String password, BankData bankData,
-			Map<String, String> additionalHBCIConfiguration) {
+	private String pin;
+
+	private String customerId;
+
+	private String userId;
+
+	public DefaultEasyFin(BankData bankData, Map<String, String> additionalHBCIConfiguration) {
 		this.props = initProperties(bankData, additionalHBCIConfiguration);
 
 		this.callback = new MyHBCICallback(new MyHBCICallbackAnswers() {
 
 			@Override
-			public String getVRNetKeyPin() {
-				return password;
+			public String getPin() {
+				return DefaultEasyFin.this.pin;
 			}
 
 			@Override
-			public String getVRNetKey() {
-				return loginName;
+			public String getUserId() {
+				return DefaultEasyFin.this.userId;
 			}
 
 			@Override
 			public BankData getBankData() {
 				return bankData;
+			}
+
+			@Override
+			public String geCustomerId() {
+				return DefaultEasyFin.this.customerId;
 			}
 		});
 	}
@@ -170,4 +185,5 @@ public class DefaultEasyFin implements EasyFin {
 
 		return p;
 	}
+
 }

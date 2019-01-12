@@ -12,7 +12,7 @@ public class UsageExample {
 	public static void main(String[] args) {
 		final AtomicInteger a = new AtomicInteger(0);
 		try {
-			for (int i = 1; i <= 10; i++) {
+			for (int i = 1; i <= 1; i++) {
 				EasyFin ef = initEasyfin();
 				try {
 					for (Konto k : ef.getAccounts()) {
@@ -30,8 +30,9 @@ public class UsageExample {
 
 	private static EasyFin initEasyfin() {
 		return EasyFinFactory.builder() //
-				.loginName("VRNetKey Alias/ID") //
-				.loginPassword("VRNetKey Password") //
+				.customerId("VRNetKey Alias/ID") // Bei Volksbanken (agree21) und Sparkassen
+				.userId("VRNetKey Alias/ID") // haben CustomerId und UserId gleicher Wert
+				.pin("VRNetKey Pin") //
 				.bankData("Name / BIC / BLZ der Zielbank") //
 				.proxy("proxy.intern.domain.com:3128") // optional
 				.additionalHBCIConfiguration("key1", "value1") // optional

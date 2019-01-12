@@ -8,20 +8,15 @@ import java.util.stream.Stream;
 
 public class DefaultEasyFinBuilder implements EasyFinBuilder {
 
-	private String loginName;
-	private String password;
+	private String pin;
+	private String customerId;
+	private String userId;
 	private BankData bankData;
 	private Map<String, String> additionalHBCIConfiguration = new HashMap<String, String>();
 
 	@Override
-	public EasyFinBuilder loginName(String loginName) {
-		this.loginName = loginName;
-		return this;
-	}
-
-	@Override
-	public EasyFinBuilder loginPassword(String password) {
-		this.password = password;
+	public EasyFinBuilder pin(String pin) {
+		this.pin = pin;
 		return this;
 	}
 
@@ -33,7 +28,11 @@ public class DefaultEasyFinBuilder implements EasyFinBuilder {
 
 	@Override
 	public EasyFin build() {
-		return new DefaultEasyFin(this.loginName, this.password, this.bankData, additionalHBCIConfiguration);
+		DefaultEasyFin ef = new DefaultEasyFin(this.bankData,this.additionalHBCIConfiguration);
+		ef.setPin(this.pin);
+		ef.setUserId(this.userId);
+		ef.setCustomerId(this.customerId);
+		return ef;
 	}
 
 	@Override
@@ -56,6 +55,18 @@ public class DefaultEasyFinBuilder implements EasyFinBuilder {
 	@Override
 	public EasyFinBuilder additionalHBCIConfiguration(String key, String value) {
 		this.additionalHBCIConfiguration.put(key, value);
+		return this;
+	}
+
+	@Override
+	public EasyFinBuilder customerId(String customerId) {
+		this.customerId = customerId;
+		return this;
+	}
+
+	@Override
+	public EasyFinBuilder userId(String userId) {
+		this.userId = userId;
 		return this;
 	}
 

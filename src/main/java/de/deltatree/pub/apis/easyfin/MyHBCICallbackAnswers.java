@@ -5,8 +5,10 @@ public interface MyHBCICallbackAnswers {
 
 	BankData getBankData();
 
-	String getVRNetKey();
+	String getUserId();
 
-	String getVRNetKeyPin();
+	String geCustomerId();
+	
+	String getPin();
 
 }

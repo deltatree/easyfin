@@ -35,15 +35,15 @@ public class MyHBCICallback extends HBCICallbackConsole implements HBCICallback 
 			break;
 
 		case NEED_CUSTOMERID:
-			retData.append(this.answers.getVRNetKey());
+			retData.append(this.answers.geCustomerId());
 			break;
 
 		case NEED_USERID:
-			retData.append(this.answers.getVRNetKey());
+			retData.append(this.answers.getUserId());
 			break;
 
 		case NEED_PT_PIN:
-			retData.append(this.answers.getVRNetKeyPin());
+			retData.append(this.answers.getPin());
 			break;
 
 		case NEED_PASSPHRASE_SAVE:

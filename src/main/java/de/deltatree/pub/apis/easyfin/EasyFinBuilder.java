@@ -2,9 +2,7 @@ package de.deltatree.pub.apis.easyfin;
 
 public interface EasyFinBuilder {
 
-	EasyFinBuilder loginName(String string);
-
-	EasyFinBuilder loginPassword(String string);
+	EasyFinBuilder pin(String loginPassword);
 
 	EasyFinBuilder bankData(BankData bankData);
 
@@ -12,8 +10,12 @@ public interface EasyFinBuilder {
 
 	EasyFin build();
 
-	EasyFinBuilder proxy(String string);
+	EasyFinBuilder proxy(String proxy);
 
 	EasyFinBuilder additionalHBCIConfiguration(String key, String value);
+
+	EasyFinBuilder customerId(String customerId);
+
+	EasyFinBuilder userId(String userId);
 
 }
