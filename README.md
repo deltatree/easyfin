@@ -7,7 +7,7 @@ See [example](https://github.com/deltatree/easyfin/blob/master/src/test/java/de/
 Gradle:
 ```gradle
 dependencies {
-  compile 'de.deltatree.pub.apis:easyfin:1.0.4'
+  compile 'de.deltatree.pub.apis:easyfin:1.0.5'
 }
 ```
 
@@ -18,7 +18,7 @@ Maven:
   <dependency>
     <groupId>de.deltatree.pub.apis</groupId>
     <artifactId>easyfin</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
   </dependency>
 </dependencies>
 ...
