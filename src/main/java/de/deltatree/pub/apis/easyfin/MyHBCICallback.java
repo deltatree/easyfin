@@ -35,7 +35,7 @@ public class MyHBCICallback extends HBCICallbackConsole implements HBCICallback 
 			break;
 
 		case NEED_CUSTOMERID:
-			retData.append(this.answers.geCustomerId());
+			retData.append(this.answers.getCustomerId());
 			break;
 
 		case NEED_USERID:

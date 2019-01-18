@@ -7,7 +7,7 @@ public interface MyHBCICallbackAnswers {
 
 	String getUserId();
 
-	String geCustomerId();
+	String getCustomerId();
 	
 	String getPin();
 

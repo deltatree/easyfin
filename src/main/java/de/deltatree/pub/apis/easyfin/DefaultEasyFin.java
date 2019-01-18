@@ -53,8 +53,13 @@ public class DefaultEasyFin implements EasyFin {
 
 	private String userId;
 
+	private File passportFile;
+
 	public DefaultEasyFin(BankData bankData, Map<String, String> additionalHBCIConfiguration) {
-		this.props = initProperties(bankData, additionalHBCIConfiguration);
+		this.passportFile = new File("hbci---" + UUID.randomUUID().toString() + ".passport");
+		this.passportFile.deleteOnExit();
+
+		this.props = initProperties(bankData, additionalHBCIConfiguration, this.passportFile);
 
 		this.callback = new MyHBCICallback(new MyHBCICallbackAnswers() {
 
@@ -74,7 +79,7 @@ public class DefaultEasyFin implements EasyFin {
 			}
 
 			@Override
-			public String geCustomerId() {
+			public String getCustomerId() {
 				return DefaultEasyFin.this.customerId;
 			}
 		});
@@ -160,9 +165,11 @@ public class DefaultEasyFin implements EasyFin {
 				throw new IllegalStateException(e);
 			}
 		}
+		this.passportFile.delete();
 	}
 
-	private static Properties initProperties(BankData bankData, Map<String, String> additionalHBCIConfiguration) {
+	private static Properties initProperties(BankData bankData, Map<String, String> additionalHBCIConfiguration,
+			File passportFile) {
 		Properties p = new Properties();
 
 		// Set basic parameters
@@ -175,8 +182,6 @@ public class DefaultEasyFin implements EasyFin {
 		p.setProperty("client.passport.hbciversion.default", bankData.getPinTanVersion());
 		p.setProperty("client.passport.PinTan.checkcert", "1");
 		p.setProperty("client.passport.PinTan.init", "1");
-		File passportFile = new File("hbci---" + UUID.randomUUID().toString() + ".passport");
-		passportFile.deleteOnExit();
 		p.setProperty("client.passport.PinTan.filename", passportFile.getName());
 
 		for (String key : additionalHBCIConfiguration.keySet()) {
