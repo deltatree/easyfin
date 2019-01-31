@@ -1,4 +1,4 @@
-package de.deltatree.pub.apis.turnovers;
+package de.deltatree.pub.apis.easyfin;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
