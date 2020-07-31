@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.kapott.hbci.GV.HBCIJob;
@@ -55,6 +56,8 @@ public class DefaultEasyFin implements EasyFin {
 
 	private File passportFile;
 
+	private Function<Map<String, String>, String> tanCallback;
+
 	public DefaultEasyFin(BankData bankData, Map<String, String> additionalHBCIConfiguration) {
 		this.passportFile = new File("hbci---" + UUID.randomUUID().toString() + ".passport");
 		this.passportFile.deleteOnExit();
@@ -81,6 +84,11 @@ public class DefaultEasyFin implements EasyFin {
 			@Override
 			public String getCustomerId() {
 				return DefaultEasyFin.this.customerId;
+			}
+
+			@Override
+			public Function<Map<String, String>, String> getTanCallback() {
+				return DefaultEasyFin.this.tanCallback;
 			}
 		});
 	}
@@ -189,6 +197,10 @@ public class DefaultEasyFin implements EasyFin {
 		}
 
 		return p;
+	}
+
+	public void setTanCallback(Function<Map<String, String>, String> tanCallback) {
+		this.tanCallback = tanCallback;
 	}
 
 }

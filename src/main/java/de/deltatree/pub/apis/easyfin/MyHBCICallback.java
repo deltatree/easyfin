@@ -1,5 +1,6 @@
 package de.deltatree.pub.apis.easyfin;
 
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,6 +41,10 @@ public class MyHBCICallback extends HBCICallbackConsole implements HBCICallback 
 
 		case NEED_USERID:
 			retData.append(this.answers.getUserId());
+			break;
+
+		case NEED_PT_TAN:
+			retData.append(this.answers.getTanCallback().apply(new HashMap<String, String>()));
 			break;
 
 		case NEED_PT_PIN:

@@ -1,7 +1,8 @@
 plugins {
     id "java"
     id "eclipse"
-    id "com.jfrog.bintray" version "1.8.4"
+    id "com.jfrog.bintray" version "1.8.5"
+    id "io.freefair.lombok" version "5.1.0"
     id "maven-publish"
 }
 
@@ -11,7 +12,7 @@ repositories {
     jcenter()
 }
 
-version = '1.0.7' + (Boolean.valueOf(System.getProperty("snapshot")) ? "-SNAPSHOT" : "")
+version = '1.0.8' + (Boolean.valueOf(System.getProperty("snapshot")) ? "-SNAPSHOT" : "")
 sourceCompatibility = 1.8
 
 ext{
@@ -106,9 +107,7 @@ bintray {
 }
 
 dependencies {
-	implementation 'com.github.hbci4j:hbci4j-core:3.0.24'
-	
-	compileOnly 'org.projectlombok:lombok:1.18.4'
+	implementation 'com.github.hbci4j:hbci4j-core:3.1.42'
 	
     testImplementation 'junit:junit:4.12'
 }

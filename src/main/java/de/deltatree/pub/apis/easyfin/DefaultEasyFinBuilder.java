@@ -3,6 +3,7 @@ package de.deltatree.pub.apis.easyfin;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -13,6 +14,7 @@ public class DefaultEasyFinBuilder implements EasyFinBuilder {
 	private String userId;
 	private BankData bankData;
 	private Map<String, String> additionalHBCIConfiguration = new HashMap<String, String>();
+	private Function<Map<String, String>, String> tanCallback;
 
 	@Override
 	public EasyFinBuilder pin(String pin) {
@@ -27,11 +29,18 @@ public class DefaultEasyFinBuilder implements EasyFinBuilder {
 	}
 
 	@Override
+	public EasyFinBuilder tanCallback(Function<Map<String, String>, String> tanCallback) {
+		this.tanCallback = tanCallback;
+		return this;
+	}
+
+	@Override
 	public EasyFin build() {
-		DefaultEasyFin ef = new DefaultEasyFin(this.bankData,this.additionalHBCIConfiguration);
+		DefaultEasyFin ef = new DefaultEasyFin(this.bankData, this.additionalHBCIConfiguration);
 		ef.setPin(this.pin);
 		ef.setUserId(this.userId);
 		ef.setCustomerId(this.customerId);
+		ef.setTanCallback(this.tanCallback);
 		return ef;
 	}
 
