@@ -12,12 +12,12 @@ repositories {
     jcenter()
 }
 
-version = '1.0.8' + (Boolean.valueOf(System.getProperty("snapshot")) ? "-SNAPSHOT" : "")
+version = '1.0.9' + (Boolean.valueOf(System.getProperty("snapshot")) ? "-SNAPSHOT" : "")
 sourceCompatibility = 1.8
 
 ext{
-    bintrayUser = System.getProperty("bintray.user")
-    bintrayKey = System.getProperty("bintray.key")
+    bintrayUser = System.getProperty("BINTRAY_USER")
+    bintrayKey = System.getProperty("BINTRAY_KEY")
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
@@ -82,8 +82,8 @@ publishing {
 }
 
 bintray {
-	user = System.getProperty('bintray.user')
-	key = System.getProperty('bintray.key')
+	user = System.getProperty('BINTRAY_USER')
+	key = System.getProperty('BINTRAY_KEY')
 	publications = ['mavenPublication']
 
 	pkg {
