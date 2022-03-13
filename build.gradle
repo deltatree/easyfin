@@ -1,9 +1,8 @@
 plugins {
     id "java"
     id "eclipse"
-    id "com.jfrog.bintray" version "1.8.5"
-    id "io.freefair.lombok" version "5.1.0"
-    id "maven-publish"
+    id "io.freefair.lombok" version "6.4.1"
+    id("io.hkhc.jarbird") version "0.7.0"        
 }
 
 repositories {
@@ -12,103 +11,17 @@ repositories {
     jcenter()
 }
 
-version = '1.0.9' + (Boolean.valueOf(System.getProperty("snapshot")) ? "-SNAPSHOT" : "")
+jarbird {
+    mavenCentral()
+    pub {}
+}
+
 sourceCompatibility = 1.8
 
-ext{
-    bintrayUser = System.getProperty("BINTRAY_USER")
-    bintrayKey = System.getProperty("BINTRAY_KEY")
-}
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-javadoc.failOnError = false
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-}
-
-def pomConfig = {
-    licenses {
-        license {
-            name "The Apache Software License, Version 2.0"
-            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
-            distribution "repo"
-        }
-    }
-    developers {
-        developer {
-            id "deltatree"
-            name "Alexander Widak"
-            email "alexander.widak@deltatree.de"
-        }
-    }
-
-    scm {
-        url "https://github.com/deltatree/easyfin"
-    }
-}
-
-publishing {
-    publications {
-        mavenPublication(MavenPublication) {
-            from components.java
-            artifact sourcesJar {
-                classifier "sources"
-            }
-            artifact javadocJar {
-                classifier "javadoc"
-            }
-            groupId 'de.deltatree.pub.apis'
-            artifactId 'easyfin'
-            version project.version
-            pom.withXml {
-                def root = asNode()
-                root.appendNode('description', 'Threadsafe HBCI4JAVA Wrapper for easily accessing your financial accounts so you need no cloud services to do that')
-                root.appendNode('name', 'easyfin')
-                root.appendNode('url', 'https://github.com/deltatree/easyfin')
-                root.children().last() + pomConfig
-            }
-        }
-    }
-}
-
-bintray {
-	user = System.getProperty('BINTRAY_USER')
-	key = System.getProperty('BINTRAY_KEY')
-	publications = ['mavenPublication']
-
-	pkg {
-		repo = 'maven'
-		name = 'easyfin'
-		userOrg = 'deltatree'
-		licenses = ['Apache-2.0']
-		vcsUrl = 'https://github.com/deltatree/easyfin.git'
-		version {
-            name = project.version
-            desc = "build " + new Date()
-            released  = new Date()
-            gpg {
-                sign = true
-            }
-		}
-	}
-	
-	publish = true
-
-}
-
 dependencies {
-	implementation 'com.github.hbci4j:hbci4j-core:3.1.42'
+	compileOnly 'com.github.hbci4j:hbci4j-core:3.1.58'
 	
     testImplementation 'junit:junit:4.12'
+    testImplementation 'com.github.hbci4j:hbci4j-core:3.1.58'
 }
 
