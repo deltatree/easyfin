@@ -1,6 +1,6 @@
 group: de.deltatree.pub.apis
 artifactId: easyfin
-version: 1.0.11
+version: 1.0.12
 packaging: jar
 description: Threadsafe HBCI4JAVA Wrapper for easily accessing your financial accounts so you need no cloud services to do
    that

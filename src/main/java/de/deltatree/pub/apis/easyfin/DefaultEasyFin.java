@@ -221,7 +221,8 @@ public class DefaultEasyFin implements EasyFin {
 
 	@Override
 	public Konto getAccount(String search) {
-		List<Konto> list = getAccounts().stream().filter(k -> k.toString().contains(search)).toList();
+		List<Konto> list = getAccounts().stream().filter(k -> k.toString().contains(search))
+				.collect(Collectors.toList());
 		if (list.size() == 1) {
 			return list.get(0);
 		} else if (list.size() < 1) {
