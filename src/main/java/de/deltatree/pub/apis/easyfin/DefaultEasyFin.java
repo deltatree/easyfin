@@ -1,7 +1,10 @@
 package de.deltatree.pub.apis.easyfin;
 
 import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -13,6 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.kapott.hbci.GV.HBCIJob;
@@ -35,6 +39,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class DefaultEasyFin implements EasyFin {
+
+	private static final String YYYY_MM_DD = "yyyy-MM-dd";
 
 	static {
 		HBCIUtils.init(new Properties(), new HBCICallbackUnsupported());
@@ -95,6 +101,16 @@ public class DefaultEasyFin implements EasyFin {
 
 	@Override
 	public Stream<UmsLine> getTurnoversAsStream(Konto account) {
+		try {
+			SimpleDateFormat sdf = new SimpleDateFormat(YYYY_MM_DD);
+			return getTurnoversAsStream(account, sdf.parse("1970-01-01"));
+		} catch (ParseException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public Stream<UmsLine> getTurnoversAsStream(Konto account, Date from) {
 		Callable<TurnoversResult> callable = new HBCICallable<TurnoversResult>(this.props, this.callback,
 				PASSPORT_FACTORY) {
 
@@ -102,7 +118,7 @@ public class DefaultEasyFin implements EasyFin {
 			protected TurnoversResult execute(HBCIPassport passport, HBCIHandler handler) throws Exception {
 				HBCIJob job = handler.newJob("KUmsAll");
 				job.setParam("my", account);
-				job.setParam("startdate", "1970-01-01");
+				job.setParam("startdate", new SimpleDateFormat(YYYY_MM_DD).format(from));
 				job.addToQueue();
 
 				HBCIExecStatus ret = handler.execute();
@@ -201,6 +217,19 @@ public class DefaultEasyFin implements EasyFin {
 
 	public void setTanCallback(Function<Map<String, String>, String> tanCallback) {
 		this.tanCallback = tanCallback;
+	}
+
+	@Override
+	public Konto getAccount(String search) {
+		List<Konto> list = getAccounts().stream().filter(k -> k.toString().contains(search)).toList();
+		if (list.size() == 1) {
+			return list.get(0);
+		} else if (list.size() < 1) {
+			throw new IllegalStateException("search with " + search + " gives no results");
+		} else {
+			throw new IllegalStateException(
+					"Multiple results: " + list.stream().map(k -> k.toString()).collect(Collectors.joining(",")));
+		}
 	}
 
 }

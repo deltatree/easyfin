@@ -3,22 +3,22 @@ package de.deltatree.pub.apis.easyfin;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.kapott.hbci.structures.Konto;
 
 public class UsageExample {
 
 	public static void main(String[] args) {
-		final AtomicInteger a = new AtomicInteger(0);
 		try {
 			for (int i = 1; i <= 1; i++) {
 				EasyFin ef = initEasyfin();
 				try {
 					for (Konto k : ef.getAccounts()) {
-						ef.getTurnoversAsStream(k)
-								.forEach(t -> System.out.println(a.incrementAndGet() + " " + t.value));
+						ef.getTurnoversAsStream(k, daysInThePast(10))
+								.forEach(t -> System.out.println(k.number + " " + t.value + " " + t.usage));
 					}
 				} finally {
 					ef.clean();
@@ -27,6 +27,12 @@ public class UsageExample {
 		} finally {
 			EasyFinFactory.clean();
 		}
+	}
+
+	private static Date daysInThePast(int days) {
+		Calendar instance = Calendar.getInstance();
+		instance.add(Calendar.DATE, -days);
+		return instance.getTime();
 	}
 
 	private static EasyFin initEasyfin() {
@@ -45,6 +51,7 @@ public class UsageExample {
 	private static String exampleTanCallback(Map<String, String> in) {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		try {
+			System.out.print("Bitte TAN eingeben: ");
 			return reader.readLine();
 		} catch (IOException e) {
 			throw new IllegalStateException(e);

@@ -1,19 +1,16 @@
 group: de.deltatree.pub.apis
 artifactId: easyfin
-version: 1.0.10
+version: 1.0.11
 packaging: jar
-
-description: Threadsafe HBCI4JAVA Wrapper for easily accessing your financial accounts so you need no cloud services to do that
-
+description: Threadsafe HBCI4JAVA Wrapper for easily accessing your financial accounts so you need no cloud services to do
+   that
 licenses:
-  - name: Apache-2.0
-    dist: repo
-
+-  name: Apache-2.0
+   dist: repo
 developers:
-  - id: deltatree
-    name: Alexander Widak
-    email: alexander.widak@deltatree.de
-
+-  id: deltatree
+   name: Alexander Widak
+   email: alexander.widak@deltatree.de
 scm:
-  repoType: github.com
-  repoName: deltatree/easyfin
+   repoType: github.com
+   repoName: deltatree/easyfin
