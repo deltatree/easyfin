@@ -101,9 +101,14 @@ public class DefaultEasyFin implements EasyFin {
 
 	@Override
 	public Stream<UmsLine> getTurnoversAsStream(Konto account) {
+		return getTurnoversAsStream(account, GetTurnoversModeEnum.KUmsAll);
+	}
+
+	@Override
+	public Stream<UmsLine> getTurnoversAsStream(Konto account, GetTurnoversModeEnum mode) {
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat(YYYY_MM_DD);
-			return getTurnoversAsStream(account, sdf.parse("1970-01-01"));
+			return getTurnoversAsStream(account, sdf.parse("1970-01-01"), mode);
 		} catch (ParseException e) {
 			throw new IllegalStateException(e);
 		}
@@ -111,12 +116,17 @@ public class DefaultEasyFin implements EasyFin {
 
 	@Override
 	public Stream<UmsLine> getTurnoversAsStream(Konto account, Date from) {
+		return getTurnoversAsStream(account, from, GetTurnoversModeEnum.KUmsAll);
+	}
+
+	@Override
+	public Stream<UmsLine> getTurnoversAsStream(Konto account, Date from, GetTurnoversModeEnum mode) {
 		Callable<TurnoversResult> callable = new HBCICallable<TurnoversResult>(this.props, this.callback,
 				PASSPORT_FACTORY) {
 
 			@Override
 			protected TurnoversResult execute(HBCIPassport passport, HBCIHandler handler) throws Exception {
-				HBCIJob job = handler.newJob("KUmsAll");
+				HBCIJob job = handler.newJob(mode.name());
 				job.setParam("my", account);
 				job.setParam("startdate", new SimpleDateFormat(YYYY_MM_DD).format(from));
 				job.addToQueue();
@@ -232,5 +242,4 @@ public class DefaultEasyFin implements EasyFin {
 					"Multiple results: " + list.stream().map(k -> k.toString()).collect(Collectors.joining(",")));
 		}
 	}
-
 }

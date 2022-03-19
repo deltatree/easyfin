@@ -11,7 +11,11 @@ public interface EasyFin {
 
 	Stream<UmsLine> getTurnoversAsStream(Konto account);
 
+	Stream<UmsLine> getTurnoversAsStream(Konto account, GetTurnoversModeEnum mode);
+
 	Stream<UmsLine> getTurnoversAsStream(Konto account, Date from);
+
+	Stream<UmsLine> getTurnoversAsStream(Konto account, Date from, GetTurnoversModeEnum mode);
 
 	List<Konto> getAccounts();
 

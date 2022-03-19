@@ -17,8 +17,12 @@ public class UsageExample {
 				EasyFin ef = initEasyfin();
 				try {
 					for (Konto k : ef.getAccounts()) {
+						System.out.println("############################################");
+						System.out.println(k);
+						System.out.println("############################################");
 						ef.getTurnoversAsStream(k, daysInThePast(10))
 								.forEach(t -> System.out.println(k.number + " " + t.value + " " + t.usage));
+
 					}
 				} finally {
 					ef.clean();
@@ -57,17 +61,5 @@ public class UsageExample {
 			throw new IllegalStateException(e);
 		}
 	}
-
-//	private static EasyFin initEasyfin() {
-//		return EasyFinFactory.builder() //
-//				.customerId("VRNetKey Alias/ID") // Bei Volksbanken (agree21) und Sparkassen
-//				.userId("VRNetKey Alias/ID") // haben CustomerId und UserId den gleichen Wert
-//				.pin("Pin") //
-//				.bankData("Name / BIC / BLZ der Zielbank") //
-//				.proxy("proxy.intern.domain.com:3128") // optional
-//				.additionalHBCIConfiguration("key1", "value1") // optional
-//				.additionalHBCIConfiguration("keyN", "valueN") // optional
-//				.build();
-//	}
 
 }
