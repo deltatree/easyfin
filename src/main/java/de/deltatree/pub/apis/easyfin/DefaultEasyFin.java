@@ -23,7 +23,6 @@ import org.kapott.hbci.GV.HBCIJob;
 import org.kapott.hbci.GV_Result.GVRKUms;
 import org.kapott.hbci.GV_Result.GVRKUms.UmsLine;
 import org.kapott.hbci.callback.HBCICallback;
-import org.kapott.hbci.callback.HBCICallbackUnsupported;
 import org.kapott.hbci.concurrent.DefaultHBCIPassportFactory;
 import org.kapott.hbci.concurrent.HBCIPassportFactory;
 import org.kapott.hbci.concurrent.HBCIThreadFactory;
@@ -43,7 +42,33 @@ public class DefaultEasyFin implements EasyFin {
 	private static final String YYYY_MM_DD = "yyyy-MM-dd";
 
 	static {
-		HBCIUtils.init(new Properties(), new HBCICallbackUnsupported());
+		HBCIUtils.init(new Properties(), new HBCICallback() {
+			@Override
+			public void callback(HBCIPassport passport, int reason, String msg, int datatype, StringBuffer retData) {
+				// Do nothing - classify all calls as successful
+			}
+
+			@Override
+			public void status(HBCIPassport passport, int statusTag, Object[] o) {
+				// Do nothing - classify all calls as successful
+			}
+
+			@Override
+			public void log(String msg, int level, Date date, StackTraceElement trace) {
+				// Do nothing - classify all calls as successful
+			}
+
+			@Override
+			public void status(HBCIPassport passport, int statusTag, Object o) {
+				// Do nothing - classify all calls as successful
+			}
+
+			@Override
+			public boolean useThreadedCallback(HBCIPassport passport, int reason, String msg, int datatype,
+					StringBuffer retData) {
+				return false; // Do not use threaded callback
+			}
+		});
 	}
 
 	private final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(new HBCIThreadFactory());
