@@ -46,8 +46,42 @@ dependencies {
 ...
 ```
 
+## GitHub Packages
+
+Add GitHub Packages repository to your build configuration:
+
+Gradle:
+```gradle
+repositories {
+    maven {
+        name = "GitHubPackages"
+        url = "https://maven.pkg.github.com/deltatree/easyfin"
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+            password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+        }
+    }
+}
+
+dependencies {
+  implementation 'com.github.hbci4j:hbci4j-core:3.1.88'
+  implementation 'de.deltatree.pub.apis:easyfin:${latest.version}'
+}
+```
+
+Maven:
+```xml
+<repositories>
+  <repository>
+    <id>github</id>
+    <url>https://maven.pkg.github.com/deltatree/easyfin</url>
+  </repository>
+</repositories>
+```
+
 [![Release](https://img.shields.io/github/v/release/deltatree/easyfin)](https://github.com/deltatree/easyfin/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/de.deltatree.pub.apis/easyfin)](https://central.sonatype.com/artifact/de.deltatree.pub.apis/easyfin)
 [![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/deltatree/easyfin/pkgs/container/easyfin)
+[![GitHub Packages](https://img.shields.io/badge/GitHub-Packages-blue)](https://github.com/deltatree/easyfin/packages)
 
 For the latest version, check the [releases page](https://github.com/deltatree/easyfin/releases) or [Maven Central](https://central.sonatype.com/artifact/de.deltatree.pub.apis/easyfin).

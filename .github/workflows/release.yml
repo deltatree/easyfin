@@ -11,6 +11,7 @@ jobs:
     environment: default
     permissions:
       contents: write
+      packages: write
 
     steps:
     - name: Checkout code
@@ -55,6 +56,13 @@ jobs:
 
     - name: Create staging directory
       run: mkdir -p build/staging-deploy
+
+    - name: Publish to GitHub Packages
+      run: ./gradlew publishMavenPublicationToGitHubPackagesRepository -Pversion=${{ steps.get_version.outputs.VERSION }}
+      env:
+        VERSION: ${{ steps.get_version.outputs.VERSION }}
+        USERNAME: ${{ github.actor }}
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Deploy to Maven Central
       run: ./gradlew jreleaserDeploy -Pversion=${{ steps.get_version.outputs.VERSION }}
