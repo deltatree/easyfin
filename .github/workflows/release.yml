@@ -53,6 +53,15 @@ jobs:
       run: |
         echo "Files in build/libs:"
         find ./build/libs -name "*.jar" -type f
+        echo "Renaming files to include version..."
+        cd ./build/libs
+        for file in *.jar; do
+          if [[ "$file" != *"${{ steps.get_version.outputs.VERSION }}"* ]]; then
+            base="${file%.jar}"
+            mv "$file" "${base}-${{ steps.get_version.outputs.VERSION }}.jar"
+          fi
+        done
+        ls -la
 
     - name: Create staging directory
       run: mkdir -p build/staging-deploy
@@ -81,9 +90,7 @@ jobs:
         name: Release ${{ steps.get_version.outputs.VERSION }}
         draft: false
         prerelease: false
-        files: |
-          ./build/libs/*.jar
-          ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}-javadoc.jar
+        files: ./build/libs/*.jar
         fail_on_unmatched_files: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

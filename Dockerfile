@@ -1,25 +1,15 @@
 FROM gradle:8-jdk21 AS builder
 
 WORKDIR /app
+COPY . .
 
-# Copy gradle wrapper and build files
-COPY gradlew gradlew.bat ./
-COPY gradle/ gradle/
-COPY build.gradle settings.gradle pom.yaml ./
+ARG VERSION
+ENV VERSION=${VERSION}
 
-# Copy source code
-COPY src/ src/
+RUN ./gradlew build publishToMavenLocal -Pversion=${VERSION:-1.0.13-SNAPSHOT} -x test
 
-# Build with version parameter
-ARG VERSION=1.0.13-SNAPSHOT
-RUN chmod +x gradlew && \
-    mkdir -p build/staging-deploy && \
-    ./gradlew build publishToMavenLocal -Pversion=${VERSION} --no-daemon
-
-# Export stage for copying artifacts
 FROM scratch AS export
 COPY --from=builder /app/build/libs/ /
-COPY --from=builder /app/build/staging-deploy/ /staging-deploy/
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
