@@ -1,11 +1,22 @@
-FROM scratch AS export
-COPY --from=builder /app/build/libs/ /app/build/libs/
+FROM gradle:8-jdk21 AS builder
+
+WORKDIR /app
+
+# Copy gradle wrapper and build files
+COPY gradlew gradlew.bat ./
+COPY gradle/ gradle/
+COPY build.gradle settings.gradle ./
+
 # Copy source code
 COPY src/ src/
 
 # Make gradlew executable and build
 RUN chmod +x gradlew && \
     ./gradlew build --no-daemon
+
+# Export stage for copying artifacts
+FROM scratch AS export
+COPY --from=builder /app/build/libs/ /
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
