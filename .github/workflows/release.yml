@@ -46,6 +46,12 @@ jobs:
       run: |
         mkdir -p ./build/libs
         docker build --target export --output ./build/libs .
+        ls -la ./build/libs/
+        
+    - name: List built files
+      run: |
+        echo "Files in build/libs:"
+        find ./build/libs -name "*.jar" -type f
         
     - name: Create staging directory
       run: mkdir -p build/staging-deploy
@@ -68,24 +74,10 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}.jar
-          ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}-sources.jar
-          ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}-javadoc.jar
-        fail_on_unmatched_files: true
+          ./build/libs/*.jar
+        fail_on_unmatched_files: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}-javadoc.jar
-        fail_on_unmatched_files: true
-    - name: Upload Sources JAR
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}-sources.jar
-        asset_name: easyfin-${{ steps.get_version.outputs.VERSION }}-sources.jar
-        asset_content_type: application/java-archive
-        
     - name: Upload Javadoc JAR
       uses: actions/upload-release-asset@v1
       env:

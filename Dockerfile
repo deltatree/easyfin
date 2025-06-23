@@ -10,10 +10,11 @@ COPY build.gradle settings.gradle pom.yaml ./
 # Copy source code
 COPY src/ src/
 
-# Make gradlew executable and build
+# Build with version parameter
+ARG VERSION=1.0.13-SNAPSHOT
 RUN chmod +x gradlew && \
     mkdir -p build/staging-deploy && \
-    ./gradlew build publishToMavenLocal --no-daemon
+    ./gradlew build publishToMavenLocal -Pversion=${VERSION} --no-daemon
 
 # Export stage for copying artifacts
 FROM scratch AS export
