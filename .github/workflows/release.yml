@@ -43,10 +43,8 @@ jobs:
       
     - name: Build JAR with Docker
       run: |
-        docker build -t easyfin-builder .
-        docker create --name temp-container easyfin-builder
-        docker cp temp-container:/app/build/libs/. ./build/libs/
-        docker rm temp-container
+        mkdir -p ./build/libs
+        docker build --target export --output ./build/libs .
         
     - name: Deploy to Maven Central
       run: ./gradlew jreleaserDeploy -Pversion=${{ steps.get_version.outputs.VERSION }}
