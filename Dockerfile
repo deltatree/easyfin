@@ -5,18 +5,20 @@ WORKDIR /app
 # Copy gradle wrapper and build files
 COPY gradlew gradlew.bat ./
 COPY gradle/ gradle/
-COPY build.gradle settings.gradle ./
+COPY build.gradle settings.gradle pom.yaml ./
 
 # Copy source code
 COPY src/ src/
 
 # Make gradlew executable and build
 RUN chmod +x gradlew && \
-    ./gradlew build --no-daemon
+    mkdir -p build/staging-deploy && \
+    ./gradlew build publishToMavenLocal --no-daemon
 
 # Export stage for copying artifacts
 FROM scratch AS export
 COPY --from=builder /app/build/libs/ /
+COPY --from=builder /app/build/staging-deploy/ /staging-deploy/
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine

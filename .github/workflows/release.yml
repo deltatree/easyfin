@@ -47,6 +47,9 @@ jobs:
         mkdir -p ./build/libs
         docker build --target export --output ./build/libs .
         
+    - name: Create staging directory
+      run: mkdir -p build/staging-deploy
+        
     - name: Deploy to Maven Central
       run: ./gradlew jreleaserDeploy -Pversion=${{ steps.get_version.outputs.VERSION }}
       env:
@@ -71,9 +74,6 @@ jobs:
         fail_on_unmatched_files: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        files: |
-          ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}.jar
-          ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}-sources.jar
           ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}-javadoc.jar
         fail_on_unmatched_files: true
     - name: Upload Sources JAR
