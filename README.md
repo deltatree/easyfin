@@ -7,7 +7,7 @@ See [example](https://github.com/deltatree/easyfin/blob/master/src/test/java/de/
 Gradle:
 ```gradle
 dependencies {
-  implementation 'com.github.hbci4j:hbci4j-core:3.1.58'
+  implementation 'com.github.hbci4j:hbci4j-core:3.1.88'
   implementation 'de.deltatree.pub.apis:easyfin:1.0.13'
 }
 ```
@@ -19,7 +19,7 @@ Maven:
   <dependency>
     <groupId>com.github.hbci4j</groupId>
     <artifactId>hbci4j-core</artifactId>
-    <version>3.1.58</version>
+    <version>3.1.88</version>
   </dependency>
   <dependency>
     <groupId>de.deltatree.pub.apis</groupId>
@@ -29,3 +29,8 @@ Maven:
 </dependencies>
 ...
 ```
+
+[![Release](https://img.shields.io/github/v/release/deltatree/easyfin)](https://github.com/deltatree/easyfin/releases)
+[![Maven Central](https://img.shields.io/maven-central/v/de.deltatree.pub.apis/easyfin)](https://central.sonatype.com/artifact/de.deltatree.pub.apis/easyfin)
+
+For the latest version, check the [releases page](https://github.com/deltatree/easyfin/releases) or [Maven Central](https://central.sonatype.com/artifact/de.deltatree.pub.apis/easyfin).
