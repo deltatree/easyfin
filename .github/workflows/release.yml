@@ -44,26 +44,19 @@ jobs:
         VERSION: ${{ steps.get_version.outputs.VERSION }}
       
     - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ steps.get_version.outputs.VERSION }}
         draft: false
         prerelease: false
-        
-    - name: Upload JAR
-      uses: actions/upload-release-asset@v1
+        files: |
+          ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}.jar
+          ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}-sources.jar
+          ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}-javadoc.jar
+        fail_on_unmatched_files: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}.jar
-        asset_name: easyfin-${{ steps.get_version.outputs.VERSION }}.jar
-        asset_content_type: application/java-archive
-        
     - name: Upload Sources JAR
       uses: actions/upload-release-asset@v1
       env:

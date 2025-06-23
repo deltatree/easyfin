@@ -8,7 +8,7 @@ Gradle:
 ```gradle
 dependencies {
   implementation 'com.github.hbci4j:hbci4j-core:3.1.88'
-  implementation 'de.deltatree.pub.apis:easyfin:1.0.13'
+  implementation 'de.deltatree.pub.apis:easyfin:${latest.version}'
 }
 ```
 
@@ -24,7 +24,7 @@ Maven:
   <dependency>
     <groupId>de.deltatree.pub.apis</groupId>
     <artifactId>easyfin</artifactId>
-    <version>1.0.13</version>
+    <version>${latest.version}</version>
   </dependency>
 </dependencies>
 ...
