@@ -8,6 +8,7 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: default
     permissions:
       contents: write
       
@@ -70,7 +71,6 @@ jobs:
         fail_on_unmatched_files: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        prerelease: false
         files: |
           ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}.jar
           ./build/libs/easyfin-${{ steps.get_version.outputs.VERSION }}-sources.jar
