@@ -4,7 +4,22 @@ Threadsafe HBCI4JAVA Wrapper for easily accessing your financial accounts. Easyf
 Usage:
 See [example](https://github.com/deltatree/easyfin/blob/master/src/test/java/de/deltatree/pub/apis/easyfin/UsageExample.java)
 
-Gradle:
+## Docker
+
+Pull and run the Docker image:
+```bash
+docker pull ghcr.io/deltatree/easyfin:latest
+docker run -d -p 8080:8080 ghcr.io/deltatree/easyfin:latest
+```
+
+Build locally:
+```bash
+docker build -t easyfin .
+docker run -d -p 8080:8080 easyfin
+```
+
+## Gradle
+
 ```gradle
 dependencies {
   implementation 'com.github.hbci4j:hbci4j-core:3.1.88'
@@ -12,7 +27,8 @@ dependencies {
 }
 ```
 
-Maven:
+## Maven
+
 ```maven
 ...
 <dependencies>
@@ -32,5 +48,6 @@ Maven:
 
 [![Release](https://img.shields.io/github/v/release/deltatree/easyfin)](https://github.com/deltatree/easyfin/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/de.deltatree.pub.apis/easyfin)](https://central.sonatype.com/artifact/de.deltatree.pub.apis/easyfin)
+[![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/deltatree/easyfin/pkgs/container/easyfin)
 
 For the latest version, check the [releases page](https://github.com/deltatree/easyfin/releases) or [Maven Central](https://central.sonatype.com/artifact/de.deltatree.pub.apis/easyfin).
