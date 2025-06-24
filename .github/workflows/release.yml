@@ -100,11 +100,20 @@ jobs:
         JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
         JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
 
+    - name: Publish GPG key to keyservers
+      run: |
+        echo "Publishing GPG key to keyservers..."
+        echo "${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}" | gpg --import
+        gpg --keyserver keyserver.ubuntu.com --send-keys E0F48990E2F9A44F || true
+        gpg --keyserver keys.openpgp.org --send-keys E0F48990E2F9A44F || true
+        gpg --keyserver pgp.mit.edu --send-keys E0F48990E2F9A44F || true
+      continue-on-error: true
+
     - name: Deploy to Maven Central
       id: maven-deploy
       run: |
         echo "Starting Maven Central deployment process..."
-        ./gradlew jreleaserDeploy --info -Pversion=${{ steps.get_version.outputs.VERSION }}
+        ./gradlew jreleaserDeploy --stacktrace --debug -Pversion=${{ steps.get_version.outputs.VERSION }}
         echo "Maven Central deployment process completed."
       env:
         VERSION: ${{ steps.get_version.outputs.VERSION }}
@@ -151,7 +160,3 @@ jobs:
         fail_on_unmatched_files: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        draft: false
-        prerelease: false
-        files: ./build/libs/*.jar
-        fail_on_unmatched_files: false
