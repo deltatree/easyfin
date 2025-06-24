@@ -12,6 +12,11 @@ jobs:
     permissions:
       contents: write
       packages: write
+    env:
+      VERSION: ${{ github.ref_name }}
+      MAVEN_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
+      MAVEN_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
+      MAVEN_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
 
     steps:
     - name: Checkout code
@@ -26,6 +31,11 @@ jobs:
       with:
         java-version: '21'
         distribution: 'temurin'
+        server-id: ossrh
+        server-username: MAVEN_USERNAME
+        server-password: MAVEN_PASSWORD
+        gpg-private-key: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
     - name: Cache Gradle dependencies
       uses: actions/cache@v4
@@ -73,8 +83,17 @@ jobs:
         USERNAME: ${{ github.actor }}
         TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Verify JReleaser configuration
+      run: ./gradlew jreleaserConfig --info -Pversion=${{ steps.get_version.outputs.VERSION }}
+      env:
+        VERSION: ${{ steps.get_version.outputs.VERSION }}
+
     - name: Deploy to Maven Central
-      run: ./gradlew jreleaserDeploy -Pversion=${{ steps.get_version.outputs.VERSION }}
+      id: maven-deploy
+      run: |
+        echo "Starting Maven Central deployment process..."
+        ./gradlew jreleaserDeploy --info -Pversion=${{ steps.get_version.outputs.VERSION }}
+        echo "Maven Central deployment process completed."
       env:
         VERSION: ${{ steps.get_version.outputs.VERSION }}
         JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
@@ -82,6 +101,38 @@ jobs:
         JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
         JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
         JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
+        # These are now redundant as they're defined at the job level
+        # but keeping them for clarity
+        MAVEN_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
+
+    - name: Verify Maven Central Deployment
+      if: success()
+      run: |
+        echo "Verifying Maven Central deployment..."
+        ./gradlew jreleaserVerify --info -Pversion=${{ steps.get_version.outputs.VERSION }}
+      env:
+        VERSION: ${{ steps.get_version.outputs.VERSION }}
+        JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
+        JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
+
+    - name: Retry Maven Central Deployment if failed
+      if: failure() && steps.maven-deploy.outcome == 'failure'
+      run: |
+        echo "Retrying Maven Central deployment..."
+        sleep 30
+        ./gradlew jreleaserDeploy --info -Pversion=${{ steps.get_version.outputs.VERSION }}
+      env:
+        VERSION: ${{ steps.get_version.outputs.VERSION }}
+        JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
+        JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
+        JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
+        JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
+        JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
+        MAVEN_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
