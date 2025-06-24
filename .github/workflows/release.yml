@@ -109,12 +109,12 @@ jobs:
         gpg --keyserver pgp.mit.edu --send-keys E0F48990E2F9A44F || true
       continue-on-error: true
 
-    - name: Deploy to Maven Central
-      id: maven-deploy
+    - name: Full Release with JReleaser
+      id: jreleaser-release
       run: |
-        echo "Starting Maven Central deployment process..."
-        ./gradlew jreleaserDeploy --stacktrace --debug -Pversion=${{ steps.get_version.outputs.VERSION }}
-        echo "Maven Central deployment process completed."
+        echo "Starting JReleaser full release process..."
+        ./gradlew jreleaserFullRelease --clean --stacktrace --info -Pversion=${{ steps.get_version.outputs.VERSION }}
+        echo "JReleaser full release process completed."
       env:
         VERSION: ${{ steps.get_version.outputs.VERSION }}
         JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
@@ -126,17 +126,47 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
 
-    - name: Check deployment status
+    - name: Check release status
       if: success()
       run: |
-        echo "Maven Central deployment completed successfully"
-        ls -la build/staging-deploy/ || echo "No staging directory found"
+        echo "JReleaser full release completed successfully"
+        ls -la build/jreleaser/ || echo "No JReleaser output directory found"
+
+    - name: Retry Full Release if failed
+      if: failure() && steps.jreleaser-release.outcome == 'failure'
+      run: |
+        echo "Retrying JReleaser full release..."
+        sleep 60
+        ./gradlew jreleaserFullRelease --clean --info -Pversion=${{ steps.get_version.outputs.VERSION }}
+      env:
+        VERSION: ${{ steps.get_version.outputs.VERSION }}
+        JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
+        JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
+        JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
+        JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
+        JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
+        MAVEN_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ steps.get_version.outputs.VERSION }}
+        draft: false
+        prerelease: false
+        files: ./build/libs/*.jar
+        fail_on_unmatched_files: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Retry Maven Central Deployment if failed
-      if: failure() && steps.maven-deploy.outcome == 'failure'
+      if: failure() && steps.jreleaser-release.outcome == 'failure'
       run: |
         echo "Retrying Maven Central deployment..."
-        sleep 30
+        # Wait longer before retry in case of transitioning state
+        sleep 120
         ./gradlew jreleaserDeploy --info -Pversion=${{ steps.get_version.outputs.VERSION }}
       env:
         VERSION: ${{ steps.get_version.outputs.VERSION }}
