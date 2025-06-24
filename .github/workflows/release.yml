@@ -113,7 +113,7 @@ jobs:
       id: jreleaser-release
       run: |
         echo "Starting JReleaser full release process..."
-        ./gradlew jreleaserFullRelease --clean --stacktrace --info -Pversion=${{ steps.get_version.outputs.VERSION }}
+        ./gradlew jreleaserFullRelease --stacktrace --info -Pversion=${{ steps.get_version.outputs.VERSION }}
         echo "JReleaser full release process completed."
       env:
         VERSION: ${{ steps.get_version.outputs.VERSION }}
@@ -137,7 +137,7 @@ jobs:
       run: |
         echo "Retrying JReleaser full release..."
         sleep 60
-        ./gradlew jreleaserFullRelease --clean --info -Pversion=${{ steps.get_version.outputs.VERSION }}
+        ./gradlew jreleaserFullRelease --info -Pversion=${{ steps.get_version.outputs.VERSION }}
       env:
         VERSION: ${{ steps.get_version.outputs.VERSION }}
         JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
@@ -178,15 +178,3 @@ jobs:
         MAVEN_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
         MAVEN_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
-
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ github.ref_name }}
-        name: Release ${{ steps.get_version.outputs.VERSION }}
-        draft: false
-        prerelease: false
-        files: ./build/libs/*.jar
-        fail_on_unmatched_files: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
