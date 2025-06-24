@@ -121,13 +121,22 @@ jreleaser {
                     username = System.getenv('JRELEASER_MAVENCENTRAL_USERNAME')
                     password = System.getenv('JRELEASER_MAVENCENTRAL_PASSWORD')
                     stagingRepository('build/staging-deploy')
-                    
-                    //closeRepository = true
-                    // releaseRepository = true
-                    // waitForCompletion = true
                 }
             }
         }
     }
+}
+
+// Add task to publish to staging directory before JReleaser deployment
+task publishToStaging {
+    dependsOn 'publishMavenPublicationToMavenRepository'
+    doLast {
+        println "Published artifacts to staging directory for JReleaser"
+    }
+}
+
+// Make jreleaserDeploy depend on publishing to staging
+tasks.named('jreleaserDeploy') {
+    dependsOn 'publishToStaging'
 }
 
