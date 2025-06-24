@@ -100,13 +100,9 @@ jreleaser {
     
     release {
         github {
-            overwrite = true
+            skipRelease = true
             skipTag = true
-            skipRelease = false
-            changelog {
-                formatted = 'ALWAYS'
-                preset = 'conventional-commits'
-            }
+            enabled = false
         }
     }
     
@@ -150,6 +146,10 @@ task publishToStaging {
     }
 }
 
+// Make jreleaserDeploy depend on publishing to staging
+tasks.named('jreleaserDeploy') {
+    dependsOn 'publishToStaging'
+}
 // Make jreleaserDeploy depend on publishing to staging
 tasks.named('jreleaserDeploy') {
     dependsOn 'publishToStaging'

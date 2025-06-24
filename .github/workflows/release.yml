@@ -109,12 +109,12 @@ jobs:
         gpg --keyserver pgp.mit.edu --send-keys E0F48990E2F9A44F || true
       continue-on-error: true
 
-    - name: Full Release with JReleaser
-      id: jreleaser-release
+    - name: Deploy to Maven Central with JReleaser
+      id: jreleaser-deploy
       run: |
-        echo "Starting JReleaser full release process..."
-        ./gradlew jreleaserFullRelease --stacktrace --info -Pversion=${{ steps.get_version.outputs.VERSION }}
-        echo "JReleaser full release process completed."
+        echo "Starting JReleaser Maven Central deployment..."
+        ./gradlew jreleaserDeploy --stacktrace --info -Pversion=${{ steps.get_version.outputs.VERSION }}
+        echo "JReleaser Maven Central deployment completed."
       env:
         VERSION: ${{ steps.get_version.outputs.VERSION }}
         JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
@@ -126,18 +126,18 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
 
-    - name: Check release status
+    - name: Check deployment status
       if: success()
       run: |
-        echo "JReleaser full release completed successfully"
+        echo "JReleaser Maven Central deployment completed successfully"
         ls -la build/jreleaser/ || echo "No JReleaser output directory found"
 
-    - name: Retry Full Release if failed
-      if: failure() && steps.jreleaser-release.outcome == 'failure'
+    - name: Retry Maven Central Deployment if failed
+      if: failure() && steps.jreleaser-deploy.outcome == 'failure'
       run: |
-        echo "Retrying JReleaser full release..."
+        echo "Retrying JReleaser Maven Central deployment..."
         sleep 60
-        ./gradlew jreleaserFullRelease --info -Pversion=${{ steps.get_version.outputs.VERSION }}
+        ./gradlew jreleaserDeploy --info -Pversion=${{ steps.get_version.outputs.VERSION }}
       env:
         VERSION: ${{ steps.get_version.outputs.VERSION }}
         JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
@@ -162,7 +162,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Retry Maven Central Deployment if failed
-      if: failure() && steps.jreleaser-release.outcome == 'failure'
+      if: failure() && steps.jreleaser-deploy.outcome == 'failure'
       run: |
         echo "Retrying Maven Central deployment..."
         # Wait longer before retry in case of transitioning state
