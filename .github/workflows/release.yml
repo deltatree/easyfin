@@ -101,12 +101,21 @@ jobs:
         JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVENCENTRAL_PASSWORD }}
 
     - name: Publish GPG key to keyservers
+      timeout-minutes: 5
       run: |
-        echo "Publishing GPG key to keyservers..."
+        echo "Publishing GPG key to keyservers with timeout..."
         echo "${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}" | gpg --import
-        gpg --keyserver keyserver.ubuntu.com --send-keys E0F48990E2F9A44F || true
-        gpg --keyserver keys.openpgp.org --send-keys E0F48990E2F9A44F || true
-        gpg --keyserver pgp.mit.edu --send-keys E0F48990E2F9A44F || true
+        
+        # Extract key ID
+        KEY_ID=$(gpg --list-keys --with-colons | grep pub | cut -d: -f5 | tail -1)
+        echo "Using key ID: $KEY_ID"
+        
+        # Publish to keyservers with timeout
+        timeout 120s gpg --keyserver keyserver.ubuntu.com --send-keys $KEY_ID || echo "Ubuntu keyserver timeout/failed"
+        timeout 120s gpg --keyserver keys.openpgp.org --send-keys $KEY_ID || echo "OpenPGP keyserver timeout/failed"  
+        timeout 120s gpg --keyserver pgp.mit.edu --send-keys $KEY_ID || echo "MIT keyserver timeout/failed"
+        
+        echo "GPG key publishing completed (some may have timed out)"
       continue-on-error: true
 
     - name: Deploy to Maven Central with JReleaser
