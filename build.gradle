@@ -100,9 +100,14 @@ jreleaser {
     
     release {
         github {
-            skipRelease = true
+            enabled = true
+            skipRelease = false
             skipTag = true
-            enabled = false
+            overwrite = true
+            changelog {
+                formatted = 'ALWAYS'
+                preset = 'conventional-commits'
+            }
         }
     }
     
