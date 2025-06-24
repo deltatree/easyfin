@@ -82,9 +82,34 @@ publishing {
 }
 
 jreleaser {
+    project {
+        description = 'Threadsafe HBCI4JAVA Wrapper for easily accessing your financial accounts so you need no cloud services to do that'
+        longDescription = 'Threadsafe HBCI4JAVA Wrapper for easily accessing your financial accounts so you need no cloud services to do that'
+        website = 'https://github.com/deltatree/easyfin'
+        docsUrl = 'https://github.com/deltatree/easyfin'
+        license = 'Apache-2.0'
+        copyright = '2024'
+        vendor = 'deltatree'
+        authors = ['Alexander Widak']
+        tags = ['hbci', 'banking', 'finance', 'java']
+    }
+    
+    release {
+        github {
+            overwrite = true
+            changelog {
+                formatted = 'ALWAYS'
+                preset = 'conventional-commits'
+            }
+        }
+    }
+    
     signing {
         active = 'ALWAYS'
         armored = true
+        publicKey = System.getenv('JRELEASER_GPG_PUBLIC_KEY')
+        secretKey = System.getenv('JRELEASER_GPG_SECRET_KEY')
+        passphrase = System.getenv('JRELEASER_GPG_PASSPHRASE')
     }
     
     deploy {
@@ -93,7 +118,13 @@ jreleaser {
                 sonatype {
                     active = 'ALWAYS'
                     url = 'https://central.sonatype.com/api/v1/publisher'
+                    username = System.getenv('JRELEASER_MAVENCENTRAL_USERNAME')
+                    password = System.getenv('JRELEASER_MAVENCENTRAL_PASSWORD')
                     stagingRepository('build/staging-deploy')
+                    
+                    //closeRepository = true
+                    // releaseRepository = true
+                    // waitForCompletion = true
                 }
             }
         }
