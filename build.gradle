@@ -95,7 +95,6 @@ jreleaser {
         java {
             groupId = 'de.deltatree.pub.apis'
             artifactId = 'easyfin'
-            version = project.version.toString()
         }
     }
     
