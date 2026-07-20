@@ -128,3 +128,7 @@ gradle-app.setting
 **/build/
 
 # End of https://www.gitignore.io/api/java,maven,gradle,eclipse
+# BMad tooling and agent workspaces (not part of the library)
+.claude/
+_bmad/
+_bmad-output/

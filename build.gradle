@@ -1,18 +1,24 @@
 plugins {
     id "java"
     id "eclipse"
+    id "jacoco"
     id("io.freefair.lombok") version "8.14"
+    id("com.diffplug.spotless") version "6.25.0"
+    id("com.github.spotbugs") version "6.0.26"
     id "maven-publish"
     id 'org.jreleaser' version '1.17.0'
 }
 
 group = 'de.deltatree.pub.apis'
-version = project.findProperty('version') ?: System.getenv('VERSION') ?: '1.0.13-SNAPSHOT'
+version = project.findProperty('version') ?: System.getenv('VERSION') ?: '1.1.0-SNAPSHOT'
+
+ext {
+    hbci4jVersion = '4.1.11'
+}
 
 repositories {
     mavenLocal()
     mavenCentral()
-    jcenter()
 }
 
 java {
@@ -24,23 +30,122 @@ java {
 }
 
 dependencies {
-	compileOnly 'com.github.hbci4j:hbci4j-core:3.1.88'
-	
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'com.github.hbci4j:hbci4j-core:3.1.88'
+    // hbci4java is a *provided* dependency: consumers bring their own compatible version.
+    compileOnly "com.github.hbci4j:hbci4j-core:${hbci4jVersion}"
+
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // Tests exercise the real hbci4java stack end-to-end against the embedded Mock FinTS server.
+    testImplementation "com.github.hbci4j:hbci4j-core:${hbci4jVersion}"
 }
+
+// Reproducible build artifacts (FR-17).
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+test {
+    useJUnitPlatform {
+        excludeTags 'real-bank'
+    }
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+}
+
+// Opt-in runner for real-bank smoke tests (never part of CI); requires EASYFIN_REALBANK_* env vars.
+tasks.register('realBankTest', Test) {
+    description = 'Runs the opt-in real-bank smoke tests (requires EASYFIN_REALBANK_* env vars).'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'real-bank'
+    }
+}
+
+spotless {
+    java {
+        target 'src/**/*.java'
+        importOrder()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+        // Preserve the existing tab-indent house style: no full reformatter, only hygiene steps.
+    }
+}
+
+spotbugs {
+    ignoreFailures = false
+    effort = com.github.spotbugs.snom.Effort.valueOf('MAX')
+    reportLevel = com.github.spotbugs.snom.Confidence.valueOf('HIGH')
+    excludeFilter = file("$rootDir/config/spotbugs-exclude.xml")
+}
+
+spotbugsTest {
+    enabled = false
+}
+
+tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+    reports {
+        html.required = true
+        xml.required = true
+    }
+}
+
+jacoco {
+    toolVersion = '0.8.12'
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                minimum = 0.70
+            }
+        }
+    }
+}
+
+// Coverage verification is wired into the build once the test suite exists.
+check.dependsOn jacocoTestReport
+check.dependsOn jacocoTestCoverageVerification
 
 publishing {
     publications {
         maven(MavenPublication) {
             from components.java
-            
+
+            // Declare hbci4j-core as 'provided' in the published POM so consumers know to bring it,
+            // while keeping Gradle module metadata resolution unchanged (compileOnly, non-transitive).
+            pom.withXml {
+                def deps = asNode().appendNode('dependencies')
+                def dep = deps.appendNode('dependency')
+                dep.appendNode('groupId', 'com.github.hbci4j')
+                dep.appendNode('artifactId', 'hbci4j-core')
+                dep.appendNode('version', hbci4jVersion)
+                dep.appendNode('scope', 'provided')
+            }
+
             pom {
                 name = 'easyfin'
                 description = 'Threadsafe HBCI4JAVA Wrapper for easily accessing your financial accounts so you need no cloud services to do that'
                 url = 'https://github.com/deltatree/easyfin'
                 inceptionYear = '2024'
-                
+
                 licenses {
                     license {
                         name = 'Apache-2.0'
@@ -48,7 +153,7 @@ publishing {
                         distribution = 'repo'
                     }
                 }
-                
+
                 developers {
                     developer {
                         id = 'deltatree'
@@ -56,7 +161,7 @@ publishing {
                         email = 'alexander.widak@deltatree.de'
                     }
                 }
-                
+
                 scm {
                     connection = 'scm:git:https://github.com/deltatree/easyfin.git'
                     developerConnection = 'scm:git:ssh://github.com/deltatree/easyfin.git'
@@ -97,7 +202,7 @@ jreleaser {
             artifactId = 'easyfin'
         }
     }
-    
+
     release {
         github {
             enabled = true
@@ -110,7 +215,7 @@ jreleaser {
             }
         }
     }
-    
+
     signing {
         active = 'ALWAYS'
         armored = true
@@ -119,7 +224,7 @@ jreleaser {
         passphrase = System.getenv('JRELEASER_GPG_PASSPHRASE')
         verify = true
     }
-    
+
     deploy {
         maven {
             mavenCentral {
@@ -143,7 +248,7 @@ jreleaser {
     }
 }
 
-// Add task to publish to staging directory before JReleaser deployment
+// Publish to the local staging directory before JReleaser deployment.
 task publishToStaging {
     dependsOn 'publishMavenPublicationToMavenRepository'
     doLast {
@@ -151,12 +256,6 @@ task publishToStaging {
     }
 }
 
-// Make jreleaserDeploy depend on publishing to staging
 tasks.named('jreleaserDeploy') {
     dependsOn 'publishToStaging'
 }
-// Make jreleaserDeploy depend on publishing to staging
-tasks.named('jreleaserDeploy') {
-    dependsOn 'publishToStaging'
-}
-
