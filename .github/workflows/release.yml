@@ -48,7 +48,7 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     environment: default
-    timeout-minutes: 60
+    timeout-minutes: 90
     env:
       JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
       JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
@@ -60,6 +60,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          # the annotated tag body is used as the release notes
+          fetch-depth: 0
 
       - name: Extract version from tag
         id: get_version
@@ -104,16 +107,55 @@ jobs:
           timeout 120s gpg --keyserver pgp.mit.edu --send-keys $KEY_ID || echo "MIT keyserver timeout/failed"
           echo "GPG key publishing completed (some may have timed out)"
 
+      # Sonatype can keep a deployment "transitioning" for longer than JReleaser is
+      # willing to poll, which reports a failure even though the upload succeeded.
+      # The authoritative answer is whether the artifact appears on Maven Central,
+      # so this step may fail softly and the verification below decides.
       - name: Deploy to Maven Central with JReleaser
         id: jreleaser-deploy
+        continue-on-error: true
         run: ./gradlew jreleaserDeploy --stacktrace -Pversion=${{ steps.get_version.outputs.VERSION }}
 
-      - name: Retry Maven Central deployment if it failed
-        if: failure() && steps.jreleaser-deploy.outcome == 'failure'
+      - name: Verify publication on Maven Central
+        env:
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
         run: |
-          echo "Retrying JReleaser Maven Central deployment..."
-          sleep 60
-          ./gradlew jreleaserDeploy -Pversion=${{ steps.get_version.outputs.VERSION }}
+          BASE="https://repo1.maven.org/maven2/de/deltatree/pub/apis/easyfin/${VERSION}"
+          echo "Waiting for ${VERSION} to appear on Maven Central..."
+          for i in $(seq 1 60); do
+            missing=""
+            for f in "easyfin-${VERSION}.pom" "easyfin-${VERSION}.jar" \
+                     "easyfin-${VERSION}-sources.jar" "easyfin-${VERSION}-javadoc.jar" \
+                     "easyfin-${VERSION}.jar.asc"; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' "${BASE}/${f}")
+              [ "$code" = "200" ] || missing="${missing} ${f}(${code})"
+            done
+            if [ -z "$missing" ]; then
+              echo "All artifacts are available on Maven Central."
+              exit 0
+            fi
+            echo "[$i/60] still missing:${missing}"
+            sleep 30
+          done
+          echo "::error::${VERSION} did not appear on Maven Central within 30 minutes"
+          echo "JReleaser deploy outcome was: ${{ steps.jreleaser-deploy.outcome }}"
+          exit 1
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: |
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "Release v${VERSION} already exists."
+          else
+            git tag -l --format='%(contents)' "v${VERSION}" > /tmp/notes.md
+            if [ -s /tmp/notes.md ]; then
+              gh release create "v${VERSION}" --title "easyfin ${VERSION}" --notes-file /tmp/notes.md --verify-tag
+            else
+              gh release create "v${VERSION}" --title "easyfin ${VERSION}" --generate-notes --verify-tag
+            fi
+          fi
 
       - name: Upload JReleaser logs
         if: always()
