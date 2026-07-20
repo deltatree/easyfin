@@ -2,7 +2,6 @@ package de.deltatree.pub.apis.easyfin;
 
 import java.util.Properties;
 import java.util.concurrent.Callable;
-
 import org.kapott.hbci.callback.HBCICallback;
 import org.kapott.hbci.concurrent.HBCIPassportFactory;
 import org.kapott.hbci.manager.HBCIHandler;
@@ -30,8 +29,6 @@ public abstract class HBCICallable<A extends HBCICommandResult> implements Calla
 		try {
 			prepare();
 			return execute(this.passport, this.handler);
-		} catch (Exception e) {
-			throw e;
 		} finally {
 			done();
 		}

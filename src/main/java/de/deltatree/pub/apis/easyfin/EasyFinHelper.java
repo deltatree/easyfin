@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -83,7 +84,9 @@ class StaticBankDataHelper {
 	}
 
 	public static Stream<String> getResourceFileAsStringStream(URL url) throws IOException {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+		// blz.properties ships in ISO-8859-1 (German bank names carry umlauts); read it explicitly
+		// so the lookup is deterministic regardless of the platform default charset.
+		BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.ISO_8859_1));
 		return reader.lines();
 	}
 }
