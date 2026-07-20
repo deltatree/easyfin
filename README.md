@@ -1,56 +1,113 @@
 # easyfin
-Threadsafe HBCI4JAVA Wrapper for easily accessing your financial accounts. Easyfin uses https://github.com/hbci4j/hbci4java/ as library.
 
-Usage:
-See [example](https://github.com/deltatree/easyfin/blob/master/src/test/java/de/deltatree/pub/apis/easyfin/UsageExample.java)
+[![Build](https://github.com/deltatree/easyfin/actions/workflows/build.yml/badge.svg)](https://github.com/deltatree/easyfin/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/deltatree/easyfin)](https://github.com/deltatree/easyfin/releases)
+[![Maven Central](https://img.shields.io/maven-central/v/de.deltatree.pub.apis/easyfin)](https://central.sonatype.com/artifact/de.deltatree.pub.apis/easyfin)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
-## Docker
+Threadsafe Java wrapper around [HBCI4Java](https://github.com/hbci4j/hbci4java) for reading your
+German bank accounts over **FinTS/HBCI PIN/TAN** — directly from your own code, with **no cloud
+service in between**.
 
-Pull and run the Docker image:
-```bash
-docker pull ghcr.io/deltatree/easyfin:latest
-docker run -d -p 8080:8080 ghcr.io/deltatree/easyfin:latest
-```
+easyfin gives you a small fluent API for the two things most people actually need: *list my
+accounts* and *give me my turnovers*. It handles the HBCI dialog, thread confinement, passport
+lifecycle and TAN callbacks for you.
 
-Build locally:
-```bash
-docker build -t easyfin .
-docker run -d -p 8080:8080 easyfin
-```
+## Requirements
 
-## Gradle
+- **Java 21** or newer
+- **`hbci4j-core`** on your classpath — easyfin declares it as a *provided* dependency, so you
+  choose the version. easyfin is built and tested against **4.1.11**, which requires Java 17+ and
+  brings Jakarta JAXB (`jakarta.xml.bind-api`, `jaxb-runtime`) transitively.
+
+## Installation
+
+### Gradle
 
 ```gradle
 dependencies {
-  implementation 'com.github.hbci4j:hbci4j-core:3.1.88'
-  implementation 'de.deltatree.pub.apis:easyfin:${latest.version}'
+  implementation 'com.github.hbci4j:hbci4j-core:4.1.11'
+  implementation 'de.deltatree.pub.apis:easyfin:<latest.version>'
 }
 ```
 
-## Maven
+### Maven
 
-```maven
-...
+```xml
 <dependencies>
   <dependency>
     <groupId>com.github.hbci4j</groupId>
     <artifactId>hbci4j-core</artifactId>
-    <version>3.1.88</version>
+    <version>4.1.11</version>
   </dependency>
   <dependency>
     <groupId>de.deltatree.pub.apis</groupId>
     <artifactId>easyfin</artifactId>
-    <version>${latest.version}</version>
+    <version>LATEST</version>
   </dependency>
 </dependencies>
-...
+```
+
+For the current version see the [releases page](https://github.com/deltatree/easyfin/releases) or
+[Maven Central](https://central.sonatype.com/artifact/de.deltatree.pub.apis/easyfin).
+
+## Quickstart
+
+```java
+EasyFin easyFin = EasyFinFactory.builder()
+        .bankData("GENODEF1S02")          // search by name, BIC or BLZ
+        .userId("myVRNetKey")             // for Volksbanken (agree21) and Sparkassen
+        .customerId("myVRNetKey")         // customerId and userId are usually identical
+        .pin("1234")
+        .tanCallback(challenge -> askUserForTan(challenge.get("challenge")))
+        .build();
+try {
+    for (Konto account : easyFin.getAccounts()) {
+        easyFin.getTurnoversAsStream(account, tenDaysAgo())
+               .forEach(t -> System.out.println(account.number + " " + t.value + " " + t.usage));
+    }
+} finally {
+    easyFin.clean();       // releases the worker thread and deletes the passport file
+    EasyFinFactory.clean();
+}
+```
+
+See [docs/usage.md](docs/usage.md) for the full guide, including TAN-method selection, proxies and
+error handling.
+
+## API at a glance
+
+| Call | What it does |
+| --- | --- |
+| `EasyFinFactory.builder()` | starts the fluent configuration |
+| `EasyFin.getAccounts()` | lists all accounts reachable with your credentials |
+| `EasyFin.getAccount(search)` | finds exactly one account by number, IBAN, name, BIC or BLZ |
+| `EasyFin.getTurnoversAsStream(account[, from][, mode])` | reads turnovers (MT940 or camt) |
+| `EasyFin.clean()` | releases resources; idempotent, call it in a `finally` block |
+
+Failures surface as `IllegalStateException` with a `"<operation> failed: <detail>"` message and the
+original cause attached.
+
+## Building from source
+
+```bash
+./gradlew build      # compile, format check, SpotBugs, unit + E2E tests, Javadoc, coverage
+```
+
+The end-to-end tests drive the real HBCI4Java client over real TLS against an embedded mock FinTS
+endpoint — no bank and no credentials required. The full happy path against a real bank is available
+as an opt-in runner:
+
+```bash
+EASYFIN_REALBANK_SEARCH="GENODEF1S02" \
+EASYFIN_REALBANK_USERID="myVRNetKey" \
+EASYFIN_REALBANK_CUSTOMERID="myVRNetKey" \
+EASYFIN_REALBANK_PIN="1234" \
+  ./gradlew realBankTest
 ```
 
 ## GitHub Packages
 
-Add GitHub Packages repository to your build configuration:
-
-Gradle:
 ```gradle
 repositories {
     maven {
@@ -62,26 +119,14 @@ repositories {
         }
     }
 }
-
-dependencies {
-  implementation 'com.github.hbci4j:hbci4j-core:3.1.88'
-  implementation 'de.deltatree.pub.apis:easyfin:${latest.version}'
-}
 ```
 
-Maven:
-```xml
-<repositories>
-  <repository>
-    <id>github</id>
-    <url>https://maven.pkg.github.com/deltatree/easyfin</url>
-  </repository>
-</repositories>
-```
+## Security
 
-[![Release](https://img.shields.io/github/v/release/deltatree/easyfin)](https://github.com/deltatree/easyfin/releases)
-[![Maven Central](https://img.shields.io/maven-central/v/de.deltatree.pub.apis/easyfin)](https://central.sonatype.com/artifact/de.deltatree.pub.apis/easyfin)
-[![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/deltatree/easyfin/pkgs/container/easyfin)
-[![GitHub Packages](https://img.shields.io/badge/GitHub-Packages-blue)](https://github.com/deltatree/easyfin/packages)
+easyfin never logs your PIN, TAN or passport passphrase. The transient HBCI passport file is
+encrypted with a per-instance `SecureRandom` passphrase and deleted on `clean()`. Please report
+vulnerabilities as described in [SECURITY.md](SECURITY.md).
 
-For the latest version, check the [releases page](https://github.com/deltatree/easyfin/releases) or [Maven Central](https://central.sonatype.com/artifact/de.deltatree.pub.apis/easyfin).
+## License
+
+Apache-2.0 — see [LICENSE](LICENSE).
