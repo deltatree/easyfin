@@ -1,11 +1,9 @@
 package de.deltatree.pub.apis.easyfin;
 
 import java.util.List;
-
-import org.kapott.hbci.structures.Konto;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.kapott.hbci.structures.Konto;
 
 @Data
 @AllArgsConstructor

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- The data holders intentionally expose the wrapped hbci4java structures (Konto, UmsLine)
+         and the caller-supplied configuration; easyfin is a thin pass-through wrapper, so
+         defensive copies would change the published contract. Scoped to those classes only. -->
+    <Match>
+        <Class name="~de\.deltatree\.pub\.apis\.easyfin\.(AccountsResult|TurnoversResult|DefaultBankData|DefaultEasyFin|DefaultEasyFinBuilder)"/>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+</FindBugsFilter>

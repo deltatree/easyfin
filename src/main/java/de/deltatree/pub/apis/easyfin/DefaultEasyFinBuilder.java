@@ -1,5 +1,6 @@
 package de.deltatree.pub.apis.easyfin;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,8 @@ public class DefaultEasyFinBuilder implements EasyFinBuilder {
 	private BankData bankData;
 	private Map<String, String> additionalHBCIConfiguration = new HashMap<String, String>();
 	private Function<Map<String, String>, String> tanCallback;
+	private Function<Map<String, String>, String> tanMethodSelector;
+	private Path passportDirectory;
 
 	@Override
 	public EasyFinBuilder pin(String pin) {
@@ -35,12 +38,31 @@ public class DefaultEasyFinBuilder implements EasyFinBuilder {
 	}
 
 	@Override
+	public EasyFinBuilder tanMethodSelector(Function<Map<String, String>, String> tanMethodSelector) {
+		this.tanMethodSelector = tanMethodSelector;
+		return this;
+	}
+
+	@Override
+	public EasyFinBuilder passportDirectory(Path passportDirectory) {
+		this.passportDirectory = passportDirectory;
+		return this;
+	}
+
+	@Override
 	public EasyFin build() {
-		DefaultEasyFin ef = new DefaultEasyFin(this.bankData, this.additionalHBCIConfiguration);
+		if (this.pin == null || this.pin.isEmpty()) {
+			throw new IllegalStateException("pin is required: call pin(...) before build()");
+		}
+		if (this.bankData == null) {
+			throw new IllegalStateException("bankData is required: call bankData(...) before build()");
+		}
+		DefaultEasyFin ef = new DefaultEasyFin(this.bankData, this.additionalHBCIConfiguration, this.passportDirectory);
 		ef.setPin(this.pin);
 		ef.setUserId(this.userId);
 		ef.setCustomerId(this.customerId);
 		ef.setTanCallback(this.tanCallback);
+		ef.setTanMethodSelector(this.tanMethodSelector);
 		return ef;
 	}
 
@@ -52,7 +74,11 @@ public class DefaultEasyFinBuilder implements EasyFinBuilder {
 			this.bankData = collect.get(0);
 			return this;
 		}
-		throw new IllegalStateException("lookup result is odd: [" + collect + "]");
+		if (collect.isEmpty()) {
+			throw new IllegalStateException("bank lookup for [" + bankDataSearchString + "] found no matching bank");
+		}
+		throw new IllegalStateException("bank lookup for [" + bankDataSearchString + "] is ambiguous (" + collect.size()
+				+ " matches); refine the search (e.g. by BLZ or BIC)");
 	}
 
 	@Override

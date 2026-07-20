@@ -1,10 +1,8 @@
 package de.deltatree.pub.apis.easyfin;
 
 import java.util.List;
-
-import org.kapott.hbci.GV_Result.GVRKUms.UmsLine;
-
 import lombok.Data;
+import org.kapott.hbci.GV_Result.GVRKUms.UmsLine;
 
 @Data
 public class TurnoversResult implements HBCICommandResult {
