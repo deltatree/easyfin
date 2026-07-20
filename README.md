@@ -94,9 +94,10 @@ original cause attached.
 ./gradlew build      # compile, format check, SpotBugs, unit + E2E tests, Javadoc, coverage
 ```
 
-The end-to-end tests drive the real HBCI4Java client over real TLS against an embedded mock FinTS
-endpoint — no bank and no credentials required. The full happy path against a real bank is available
-as an opt-in runner:
+The end-to-end tests drive the real HBCI4Java client over real TLS against an embedded **simulated
+FinTS bank** that completes the actual protocol dialog — synchronisation, BPD/UPD negotiation and an
+MT940 statement — so listing accounts and reading turnovers are verified without a bank or
+credentials. To additionally verify against your real bank:
 
 ```bash
 EASYFIN_REALBANK_SEARCH="GENODEF1S02" \

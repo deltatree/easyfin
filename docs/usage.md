@@ -160,10 +160,25 @@ Common cases:
 
 ## 8. Testing your integration
 
-easyfin's own end-to-end tests drive the real HBCI4Java client over TLS against an embedded mock
-FinTS endpoint (`src/test/.../mockfints/MockFinTsServer`). You can use the same approach for your
-integration tests: point `BankData.pinTanAddress` at your test endpoint and set
-`client.passport.PinTan.checkcert` to `0` for self-signed certificates.
+easyfin's own end-to-end tests drive the real HBCI4Java client over TLS against an embedded
+**simulated FinTS bank** (`src/test/.../mockfints/`). It completes the real dialog — synchronisation,
+BPD/UPD negotiation, and turnover retrieval delivering an MT940 statement — so the tests assert real
+outcomes (account number, IBAN, holder, and parsed bookings) rather than just that a request was
+sent.
+
+You can reuse the same approach for your own integration tests: point `BankData.pinTanAddress` at
+your test endpoint and set `client.passport.PinTan.checkcert` to `0` for self-signed certificates.
+
+    MockFinTsBank bank = new MockFinTsBank();
+    try (MockFinTsServer server = MockFinTsServer.start(bank)) {
+        EasyFin easyFin = EasyFinFactory.builder()
+                .bankData(bankPointingAt(server.getPinTanAddress()))
+                .userId("testuser").customerId("testcustomer").pin("543210")
+                .tanCallback(ctx -> "112233")
+                .additionalHBCIConfiguration("client.passport.PinTan.checkcert", "0")
+                .build();
+        // ... exercise your code against easyFin ...
+    }
 
 To validate against a real bank, use the opt-in runner:
 

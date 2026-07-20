@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import de.deltatree.pub.apis.easyfin.mockfints.MockBank;
+import de.deltatree.pub.apis.easyfin.mockfints.MockFinTsBank;
 import de.deltatree.pub.apis.easyfin.mockfints.MockFinTsServer;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -77,6 +78,41 @@ class Uj3ErrorJourneysE2ETest {
 			account.blz = MockBank.BLZ;
 			account.number = "1234567890";
 			try {
+				IllegalStateException ex = assertThrows(IllegalStateException.class,
+						() -> ef.getTurnoversAsStream(account));
+				assertStandardFailureShape(ex, "Fetching turnovers failed");
+			} finally {
+				ef.clean();
+			}
+		}
+	}
+
+	@Test
+	@DisplayName("UJ-3: a rejected PIN surfaces the bank's own error text")
+	void rejectedPinSurfacesBankError() {
+		MockFinTsBank bank = new MockFinTsBank().rejectingPin(MockBank.PIN);
+		try (MockFinTsServer server = MockFinTsServer.start(bank)) {
+			EasyFin ef = MockBank.clientFor(server, passportDir);
+			try {
+				IllegalStateException ex = assertThrows(IllegalStateException.class, ef::getAccounts);
+				assertStandardFailureShape(ex, "Fetching accounts failed");
+				assertTrue(server.getRequests().size() >= 1, "the bank must have been contacted");
+			} finally {
+				ef.clean();
+			}
+		}
+	}
+
+	@Test
+	@DisplayName("UJ-3: a bank-side rejection of the turnover job is reported as a turnover failure")
+	void turnoverRejectionIsReported() {
+		MockFinTsBank bank = new MockFinTsBank();
+		try (MockFinTsServer server = MockFinTsServer.start(bank)) {
+			EasyFin ef = MockBank.clientFor(server, passportDir);
+			try {
+				org.kapott.hbci.structures.Konto account = ef.getAccounts().get(0);
+				// From here on the bank refuses every request.
+				server.setResponder(MockBank::rejectingResponse);
 				IllegalStateException ex = assertThrows(IllegalStateException.class,
 						() -> ef.getTurnoversAsStream(account));
 				assertStandardFailureShape(ex, "Fetching turnovers failed");

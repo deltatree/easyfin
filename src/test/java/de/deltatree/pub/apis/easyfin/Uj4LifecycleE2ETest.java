@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import de.deltatree.pub.apis.easyfin.mockfints.MockBank;
+import de.deltatree.pub.apis.easyfin.mockfints.MockFinTsBank;
 import de.deltatree.pub.apis.easyfin.mockfints.MockFinTsServer;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,18 +33,15 @@ class Uj4LifecycleE2ETest {
 	@Test
 	@DisplayName("UJ-4: repeated create-use-clean cycles leave no passport files behind")
 	void repeatedCyclesLeaveNothingBehind() throws IOException {
-		try (MockFinTsServer server = MockFinTsServer.start(MockBank::rejectingResponse)) {
+		try (MockFinTsServer server = MockFinTsServer.start(new MockFinTsBank())) {
 			for (int i = 0; i < 3; i++) {
 				EasyFin ef = MockBank.clientFor(server, passportDir);
 				try {
-					ef.getAccounts();
-				} catch (IllegalStateException expected) {
-					// the mock rejects; the lifecycle is what we assert
+					assertEquals(1, ef.getAccounts().size(), "each cycle must complete a real dialog");
 				} finally {
 					ef.clean();
 				}
 			}
-			assertEquals(3, server.getRequests().size(), "each cycle must open its own dialog");
 			assertNoPassportFilesLeft();
 		}
 	}
@@ -51,7 +49,7 @@ class Uj4LifecycleE2ETest {
 	@Test
 	@DisplayName("UJ-4: two concurrent clients do not interfere and both clean up")
 	void concurrentClientsAreIsolated() throws Exception {
-		try (MockFinTsServer server = MockFinTsServer.start(MockBank::rejectingResponse)) {
+		try (MockFinTsServer server = MockFinTsServer.start(new MockFinTsBank())) {
 			int clients = 2;
 			CountDownLatch ready = new CountDownLatch(clients);
 			CountDownLatch go = new CountDownLatch(1);
@@ -64,9 +62,9 @@ class Uj4LifecycleE2ETest {
 					try {
 						ready.countDown();
 						go.await(10, TimeUnit.SECONDS);
-						ef.getAccounts();
-					} catch (IllegalStateException expected) {
-						// expected: the mock rejects
+						if (ef.getAccounts().size() != 1) {
+							failures.incrementAndGet();
+						}
 					} catch (Exception unexpected) {
 						failures.incrementAndGet();
 					} finally {
@@ -83,7 +81,6 @@ class Uj4LifecycleE2ETest {
 			assertTrue(done.await(60, TimeUnit.SECONDS), "clients should finish");
 
 			assertEquals(0, failures.get(), "no unexpected failures across concurrent clients");
-			assertEquals(clients, server.getRequests().size(), "each client opens its own dialog");
 			assertNoPassportFilesLeft();
 		}
 	}
@@ -91,7 +88,7 @@ class Uj4LifecycleE2ETest {
 	@Test
 	@DisplayName("UJ-4: clean() is idempotent and using a cleaned client fails clearly")
 	void cleanIsIdempotentAndGuardsReuse() {
-		try (MockFinTsServer server = MockFinTsServer.start(MockBank::rejectingResponse)) {
+		try (MockFinTsServer server = MockFinTsServer.start(new MockFinTsBank())) {
 			EasyFin ef = MockBank.clientFor(server, passportDir);
 			ef.clean();
 			ef.clean();
