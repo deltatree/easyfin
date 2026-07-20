@@ -132,7 +132,9 @@ publishing {
             // Declare hbci4j-core as 'provided' in the published POM so consumers know to bring it,
             // while keeping Gradle module metadata resolution unchanged (compileOnly, non-transitive).
             pom.withXml {
-                def deps = asNode().appendNode('dependencies')
+                // Reuse the node Gradle generated (if any) instead of adding a second one,
+                // which would produce an invalid POM once a real dependency is declared.
+                def deps = asNode().dependencies[0] ?: asNode().appendNode('dependencies')
                 def dep = deps.appendNode('dependency')
                 dep.appendNode('groupId', 'com.github.hbci4j')
                 dep.appendNode('artifactId', 'hbci4j-core')

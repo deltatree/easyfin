@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FindBugsFilter>
-    <!-- Data holders intentionally expose the wrapped hbci4java structures (Konto, UmsLine); the
-         library is a thin pass-through wrapper, so defensive copies would change the contract. -->
+    <!-- The data holders intentionally expose the wrapped hbci4java structures (Konto, UmsLine)
+         and the caller-supplied configuration; easyfin is a thin pass-through wrapper, so
+         defensive copies would change the published contract. Scoped to those classes only. -->
     <Match>
+        <Class name="~de\.deltatree\.pub\.apis\.easyfin\.(AccountsResult|TurnoversResult|DefaultBankData|DefaultEasyFin|DefaultEasyFinBuilder)"/>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
-    </Match>
-    <!-- Lombok-generated equals/hashCode/toString on @Data classes. -->
-    <Match>
-        <Bug pattern="HE_EQUALS_USE_HASHCODE,NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
-        <Class name="~.*\.(AccountsResult|TurnoversResult|DefaultBankData|DefaultEasyFin)"/>
     </Match>
 </FindBugsFilter>

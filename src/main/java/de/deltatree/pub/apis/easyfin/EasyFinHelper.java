@@ -66,21 +66,29 @@ class StaticBankDataHelper {
 			bankData.setBlz(blz);
 
 			// XXX - copied from private innerclass of hbci4java ...
-			String[] cols = data.split("\\|");
+			// Keep trailing empty fields (limit -1): entries such as
+			// "Name|Ort|BIC|09|||||" would otherwise collapse below the 8-column check
+			// and silently lose the columns that *are* populated.
+			String[] cols = data.split("\\|", -1);
 			bankData.setName(cols[0]);
 			if (cols.length >= 8) {
-				bankData.setLocation(cols[1]);
-				bankData.setBic(cols[2]);
-				bankData.setChecksumMethod(cols[3]);
-				bankData.setRdhAddress(cols[4]);
-				bankData.setPinTanAddress(cols[5]);
-				bankData.setRdhVersion(cols[6]);
-				bankData.setPinTanVersion(cols[7]);
+				bankData.setLocation(emptyToNull(cols[1]));
+				bankData.setBic(emptyToNull(cols[2]));
+				bankData.setChecksumMethod(emptyToNull(cols[3]));
+				bankData.setRdhAddress(emptyToNull(cols[4]));
+				bankData.setPinTanAddress(emptyToNull(cols[5]));
+				bankData.setRdhVersion(emptyToNull(cols[6]));
+				bankData.setPinTanVersion(emptyToNull(cols[7]));
 			}
 			return bankData;
 		}
 
 		throw new IllegalStateException("line from blz.properties not readable: " + line);
+	}
+
+	/** Absent columns stay {@code null} rather than becoming empty strings. */
+	private static String emptyToNull(String value) {
+		return value == null || value.isEmpty() ? null : value;
 	}
 
 	public static Stream<String> getResourceFileAsStringStream(URL url) throws IOException {

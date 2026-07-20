@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -40,6 +41,8 @@ import org.kapott.hbci.structures.Konto;
 public class DefaultEasyFin implements EasyFin {
 
 	private static final String YYYY_MM_DD = "yyyy-MM-dd";
+
+	private static final String CLEANED_MESSAGE = "This EasyFin instance has been cleaned and can no longer be used";
 
 	static {
 		HBCIUtils.init(new Properties(), new HBCICallback() {
@@ -201,7 +204,7 @@ public class DefaultEasyFin implements EasyFin {
 			}
 		};
 
-		Future<TurnoversResult> submit = EXECUTOR.submit(callable);
+		Future<TurnoversResult> submit = submitOrFail(callable);
 		try {
 			List<UmsLine> result = submit.get().getTurnovers();
 			return result.stream();
@@ -230,7 +233,7 @@ public class DefaultEasyFin implements EasyFin {
 			}
 		};
 
-		Future<AccountsResult> submit = EXECUTOR.submit(callable);
+		Future<AccountsResult> submit = submitOrFail(callable);
 		try {
 			return submit.get().getAccounts();
 		} catch (ExecutionException e) {
@@ -268,7 +271,22 @@ public class DefaultEasyFin implements EasyFin {
 
 	private void ensureActive() {
 		if (this.cleaned) {
-			throw new IllegalStateException("This EasyFin instance has been cleaned and can no longer be used");
+			throw new IllegalStateException(CLEANED_MESSAGE);
+		}
+	}
+
+	/**
+	 * Submits work to the instance executor. {@link #ensureActive()} rejects the
+	 * common case early, but a concurrent {@link #clean()} can still shut the
+	 * executor down between the guard and the submit; that race must surface as the
+	 * documented {@link IllegalStateException}, not as a raw
+	 * {@link RejectedExecutionException}.
+	 */
+	private <A extends HBCICommandResult> Future<A> submitOrFail(Callable<A> callable) {
+		try {
+			return EXECUTOR.submit(callable);
+		} catch (RejectedExecutionException e) {
+			throw new IllegalStateException(CLEANED_MESSAGE, e);
 		}
 	}
 
@@ -309,7 +327,8 @@ public class DefaultEasyFin implements EasyFin {
 
 	/**
 	 * Finds exactly one account whose identifying fields (account number, sub
-	 * number, IBAN, holder name, BIC, or BLZ) contain the given search string.
+	 * number, IBAN, holder name, BIC, BLZ, account type, currency, country or
+	 * customer id) contain the given search string.
 	 *
 	 * @param search substring to look for
 	 * @return the single matching account
@@ -334,7 +353,8 @@ public class DefaultEasyFin implements EasyFin {
 		}
 		return contains(k.number, search) || contains(k.subnumber, search) || contains(k.iban, search)
 				|| contains(k.name, search) || contains(k.name2, search) || contains(k.bic, search)
-				|| contains(k.blz, search);
+				|| contains(k.blz, search) || contains(k.type, search) || contains(k.curr, search)
+				|| contains(k.country, search) || contains(k.customerid, search) || contains(k.acctype, search);
 	}
 
 	private static boolean contains(String field, String search) {

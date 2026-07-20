@@ -68,6 +68,26 @@ class GetAccountMatchingTest {
 	}
 
 	@Test
+	void findsByAccountTypeAndCurrency() {
+		// These fields were part of the previous Konto.toString() based matching and
+		// must keep working after the switch to explicit field matching.
+		giro.type = "Girokonto";
+		giro.curr = "EUR";
+		savings.type = "Sparkonto";
+		savings.curr = "USD";
+
+		assertSame(giro, ef.getAccount("Girokonto"));
+		assertSame(savings, ef.getAccount("USD"));
+	}
+
+	@Test
+	void findsByCustomerId() {
+		giro.customerid = "CUST-1";
+		savings.customerid = "CUST-2";
+		assertSame(savings, ef.getAccount("CUST-2"));
+	}
+
+	@Test
 	void noMatchThrows() {
 		IllegalStateException ex = assertThrows(IllegalStateException.class, () -> ef.getAccount("NOPE"));
 		assertEquals(true, ex.getMessage().contains("no results"));

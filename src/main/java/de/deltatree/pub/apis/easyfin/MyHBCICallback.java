@@ -1,5 +1,7 @@
 package de.deltatree.pub.apis.easyfin;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -109,18 +111,16 @@ public class MyHBCICallback extends HBCICallbackConsole implements HBCICallback 
 	 * configured, so hbci4java's own default is kept.
 	 */
 	static String hostAndPathOf(String address) {
-		String rest = stripScheme(address);
-		if (rest == null) {
+		URI uri = parse(address);
+		if (uri == null) {
 			return null;
 		}
-		int slash = rest.indexOf('/');
-		String authority = slash == -1 ? rest : rest.substring(0, slash);
-		String path = slash == -1 ? "" : rest.substring(slash);
-		int colon = authority.indexOf(':');
-		if (colon != -1) {
-			authority = authority.substring(0, colon);
+		String host = uri.getHost();
+		if (host == null || host.isEmpty()) {
+			return null;
 		}
-		return authority + path;
+		String path = uri.getRawPath() != null ? uri.getRawPath() : "";
+		return host + path;
 	}
 
 	/**
@@ -128,24 +128,20 @@ public class MyHBCICallback extends HBCICallbackConsole implements HBCICallback 
 	 * when the address carries none (hbci4java then keeps its default of 443).
 	 */
 	static Integer portOf(String address) {
-		String rest = stripScheme(address);
-		if (rest == null) {
+		URI uri = parse(address);
+		if (uri == null || uri.getHost() == null) {
 			return null;
 		}
-		int slash = rest.indexOf('/');
-		String authority = slash == -1 ? rest : rest.substring(0, slash);
-		int colon = authority.indexOf(':');
-		if (colon == -1 || colon == authority.length() - 1) {
-			return null;
-		}
-		try {
-			return Integer.valueOf(authority.substring(colon + 1));
-		} catch (NumberFormatException e) {
-			return null;
-		}
+		int port = uri.getPort();
+		return port > 0 ? Integer.valueOf(port) : null;
 	}
 
-	private static String stripScheme(String address) {
+	/**
+	 * Parses a configured address into a URI. A scheme is added when missing so
+	 * bare {@code host[:port][/path]} values parse too. Returns {@code null} for
+	 * blank or unparseable input, which makes the caller keep hbci4java's default.
+	 */
+	private static URI parse(String address) {
 		if (address == null) {
 			return null;
 		}
@@ -153,8 +149,14 @@ public class MyHBCICallback extends HBCICallbackConsole implements HBCICallback 
 		if (trimmed.isEmpty()) {
 			return null;
 		}
-		int schemeIdx = trimmed.indexOf("://");
-		return schemeIdx == -1 ? trimmed : trimmed.substring(schemeIdx + 3);
+		if (!trimmed.contains("://")) {
+			trimmed = "https://" + trimmed;
+		}
+		try {
+			return new URI(trimmed);
+		} catch (URISyntaxException e) {
+			return null;
+		}
 	}
 
 	/**

@@ -75,7 +75,8 @@ public interface EasyFin {
 
 	/**
 	 * Finds exactly one account whose identifying fields (account number, sub
-	 * number, IBAN, holder name, BIC, or BLZ) contain the given search string.
+	 * number, IBAN, holder name, BIC, BLZ, account type, currency, country or
+	 * customer id) contain the given search string.
 	 *
 	 * @param search substring to look for
 	 * @return the single matching account
