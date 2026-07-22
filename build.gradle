@@ -33,7 +33,7 @@ dependencies {
     // hbci4java is a *provided* dependency: consumers bring their own compatible version.
     compileOnly "com.github.hbci4j:hbci4j-core:${hbci4jVersion}"
 
-    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation platform('org.junit:junit-bom:6.1.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     // Tests exercise the real hbci4java stack end-to-end against the embedded Mock FinTS server.
